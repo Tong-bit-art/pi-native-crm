@@ -40,7 +40,7 @@
 | `examples/chat-first-demo/dist/{inspection,agent-services,demo-fixtures}.js` | 链接指向本分支导入提交；历史分支/基线以标注呈现 |
 | `examples/chat-first-demo/tests/{inspection-dom,agent-services-dom}.cjs` | 断言更新为当前仓库地址；保留历史身份检查 |
 | `examples/chat-first-demo/artifact-manifest.json` | 6 个变动文件的 sha256 同步 |
-| `.gitignore` | 移除对 `.codex/`、`.cursor/` 的误排除（§10-带外-B） |
+| `.gitignore` | 移除对 `.codex/`、`.cursor/` 的误排除（§10『与任务单不同的处理』） |
 | `.cursor/rules/pi-native-guias.mdc`、`.codex/hooks.json` | 恢复（第 1 轮误排除；`skills-embutidas` 门禁要求随仓库发布） |
 | `.changes/2026-10-11-onboarding-publico-e-check-no-windows.md`（新） | 发布片段：`nada_mudou`（对操作者无影响） |
 | `docs/media/onboarding/{demo-workbench,demo-inspection}.png`（新） | 干净克隆演示截图（工作台首屏 + 检查面板） |
@@ -64,6 +64,9 @@
 | Lint | `corepack pnpm lint` | 0 | 无错误 | clone-lint.log |
 | 五文件（基线） | `corepack pnpm exec vitest run <五个文件>` | 1 | **25 通过 / 3 失败**；失败 = pi-runtime 三项（Windows 路径形态） | clone-five.log |
 | 五文件（拉取 a1614bd+534afa3 后） | 同上 | 0 | **28/28 通过** | clone-five-final.log |
+| 类型检查（拉取 79f0d38 后，终验） | `corepack pnpm typecheck` | 0 | 无输出 | clone-typecheck-final.log |
+| Lint（拉取 79f0d38 后，终验） | `corepack pnpm lint` | 0 | 无错误 | clone-lint-final.log |
+| 五文件（拉取 79f0d38 后，复跑） | 同上 | 0 | **28/28 通过** | clone-five-final2.log |
 | example 依赖 | `npm ci` | 1 | **不可行**：example 的 `package-lock.json` 未被跟踪（§10-3） | examples-ci.log |
 | example 依赖 | `npm install` | 0 | jsdom 30.0.1 + css-tree 3.2.1（精确版本） | examples-install.log |
 | example 套件 | `npm test` | 0 | **9/9 PASS**（含 visual-style——Codex 参考中因缺 css-tree 未跑通的一项） | examples-test2.log |
