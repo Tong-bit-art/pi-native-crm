@@ -5,7 +5,7 @@ Everything a stranger needs in order to tell apart **what is inherited**, **what
 ## Upstream / original project
 
 - **Original project:** Pi Native CRM — the original distribution repository is `helsome/AiNativeCrm`, **no longer publicly reachable** (checked on 2026-10-11).
-- The author (Rafael Melgaço) maintains a successor public repository under his `melgarafael` account on GitHub. This document intentionally does not restate that repository's current name or URL: the removed-namespace guard in `tests/unit/branding.test.ts` keeps the repository's previous brand out of this branch's files.
+- **Current public upstream:** <https://github.com/melgarafael/DeskcommCRM> — the author's (Rafael Melgaço) successor repository, reachable and independently checked on 2026-10-11. This single canonical URL is the **only sanctioned occurrence** of the previous brand in this branch's files: the removed-namespace guard in `tests/unit/branding.test.ts` stays in force for every other form — bare text anywhere, the same URL outside `ORIGIN.md`, extended URLs (extra path, query or fragment), and file names.
 - **License:** MIT, Copyright (c) 2026 Rafael Melgaço — see [LICENSE](LICENSE), kept unchanged.
 - Positioning and partnerships described in `VISION.md` (Brazilian market, HostGator partnership) are historical facts of the upstream project. They are **not** commitments, endorsements, or support promises of this branch.
 

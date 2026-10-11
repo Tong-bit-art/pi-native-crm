@@ -57,6 +57,27 @@ describe("resolveBranding", () => {
 });
 
 describe("guarda de namespace removido", () => {
+  /**
+   * A ÚNICA exceção sancionada: uma URL canônica em `ORIGIN.md`.
+   *
+   * `ORIGIN.md` precisa apontar o upstream público atual para um estranho poder
+   * conferir a linhagem — e a URL carrega o termo removido. A exceção é UM token
+   * exato: só a URL completa, só no `ORIGIN.md`, e com fronteira de URL — um
+   * endereço estendido (path, query ou fragmento) NÃO é exceção, e a mesma URL
+   * em qualquer outro arquivo continua reprovando. O termo é construído em
+   * partes para este próprio arquivo não casar a varredura que ele roda.
+   */
+  const URL_CANONICA = ["https://github.com/melgarafael/", "Desk", "commCRM"].join("");
+  const RE_URL_CANONICA = new RegExp(
+    URL_CANONICA.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![A-Za-z0-9._/?#&=%+~-])",
+    "g",
+  );
+
+  /** A linha de `git grep` sem a exceção — só em `ORIGIN.md`, só o token exato. */
+  function semExcecaoDeOrigem(linha: string): string {
+    return linha.startsWith("ORIGIN.md:") ? linha.replace(RE_URL_CANONICA, "") : linha;
+  }
+
   it("não deixa a marca anterior voltar para texto ou nomes de arquivo", () => {
     const ocorrencias = nomesLegados().flatMap((termo) => {
       try {
@@ -66,7 +87,13 @@ describe("guarda de namespace removido", () => {
         })
           .trim()
           .split("\n")
-          .filter(Boolean);
+          .filter(Boolean)
+          .filter((linha) => {
+            // Reconfere depois de remover a exceção: o que sobrar ainda casando
+            // o termo é violação — exceção de um token não vira passe livre.
+            const semExcecao = semExcecaoDeOrigem(linha);
+            return semExcecao.toLowerCase().includes(termo.toLowerCase());
+          });
       } catch (error) {
         if ((error as { status?: number }).status === 1) return [];
         throw error;
