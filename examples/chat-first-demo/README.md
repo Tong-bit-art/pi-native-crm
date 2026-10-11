@@ -20,7 +20,7 @@ This is a standalone, buildless browser example. Open `dist/index.html` through 
 
 ## Optional Agent services: source-aligned preview
 
-Source baseline: `12749abaa8aa98f7bee988f69fb4aa23e9d5ff29` on `feat/chat-first-workbench-2026-10-01`.
+Historical source baseline (original project; the original repository is no longer publicly reachable): `12749abaa8aa98f7bee988f69fb4aa23e9d5ff29` on `feat/chat-first-workbench-2026-10-01`. Source links in this demo point to the current imported code at `2bbe3c752b86e60aabf098cacc00c7c57eb0ccc5` in this repository.
 
 The existing **AI 提供商 → Agent 服务接入** page now shows Mem0, WeKnora and Langfuse as OFF / NOT CONNECTED. All service enable/retry and credential-entry controls are disabled. The **服务接入** button in Agent chat opens five source-linked panels, including the recorded real-model comparison. Customer detail has its own contact-scoped memory panel.
 
@@ -43,15 +43,15 @@ The shared visual contract now uses a white working surface, `#F7F8FA` canvas, `
 
 ## Inspect the current production-code changes
 
-Click **更新检查 · 12749ab** in the toolbar, **证据与版本** in Agent chat, or **检查本次更新** in the welcome area. This opens an inspection drawer alongside the retained chat-first UI. All its data is synthetic and explicitly separate from the current simulated chat Run.
+Click **更新检查 · 2bbe3c7** in the toolbar, **证据与版本** in Agent chat, or **检查本次更新** in the welcome area. This opens an inspection drawer alongside the retained chat-first UI. All its data is synthetic and explicitly separate from the current simulated chat Run.
 
-The inspection drawer is mapped to production feature commit `12749abaa8aa98f7bee988f69fb4aa23e9d5ff29` on `feat/chat-first-workbench-2026-10-01`:
+The inspection drawer content was authored against the historical production baseline `12749abaa8aa98f7bee988f69fb4aa23e9d5ff29` on `feat/chat-first-workbench-2026-10-01` (original project; not imported into this branch). Its source links point to this branch's imported code at commit `2bbe3c752b86e60aabf098cacc00c7c57eb0ccc5`:
 
 - Knowledge evidence shows current, superseded and revoked-source examples, with exact synthetic source/index/chunk JSON. Revocation hides the excerpt rather than retaining a historical permission grant
 - Organization memory demonstrates a resumed turn reading a newer published revision; the customer checkpoint is read-only and bounded by organization, contact, conversation, service revision and demanda revision. Unavailable/empty/changed or anonymized-contact examples never expose the previous checkpoint
 - Eval shows all seven production dimension labels and individual reason/code examples. A missing-material state refuses to display a score. It does not run the production evaluator or semantic Judge
 - Mission customer-send controls require a reason and update the same existing local demo Mission. Investigation remains available. Pausing expires pending/approved local proposal state; resuming does not revive it. Completed Missions do not expose the control. This is not general Run pause or external sending
-- Code/configuration links are immutable and spell out model, embeddings, indexing, source permissions, memory, workers and channel prerequisites. The historical model report remains pinned to its original `fc80b14` reference
+- Code/configuration links are immutable and spell out model, embeddings, indexing, source permissions, memory, workers and channel prerequisites. The historical model report keeps its original `fc80b14` provenance identity; its accessible copy links to this branch's imported file
 
 `inspection.js` is an independent inspection adaptation, not a compiled React Workbench or proof of the real API response. Publishing the Site does not start Next.js, Supabase, the agent worker, or any provider. Refresh resets the inspection examples and ordinary CRM state; only the existing lab has browser persistence.
 
@@ -88,7 +88,7 @@ The **本次 Trace** panel shows events actually executed by this local fixture 
 
 The separate **历史模型证据** panel contains minimized factual excerpts from the already-committed report:
 
-- Repository: `helsome/AiNativeCrm`
+- Repository: `helsome/AiNativeCrm` (historical, original project — no longer publicly reachable)
 - Inspected production reference: `fc80b14dc88406ab6f5e6ec3ed9ca61d632c0674`
 - Report: `docs/testing/multi-agent-eval-real-run-2026-09-28.md`
 - Recorded model: `opencode / space-bunny-free`, date 2026-09-28
@@ -104,7 +104,7 @@ The fictional Starbridge scenario matches `docs/design/llm-wiki-example/` on the
 
 All 62 render targets, 55 catalog entries, 15 direct sidebar links and four hubs remain. Existing Agent chat keeps its viewport-height work area and non-shrinking composer, multi-turn simulated conversation, Enter/Shift+Enter and IME handling, inspect/act mode, context drawer, approval/undo and Mission controls. The laboratory is a separate accessible overlay with keyboard tabs and focus restoration; closing it returns to the same CRM page.
 
-The navigation/palette adaptation originated at `a891934a2c894d55c29fdd2a085268f391e3e4b5`; Agent delegation behavior was checked at the production reference above. This standalone example is not a pixel-exact production build. Other CRM pages remain ordinary UI simulations whose state resets on refresh; only the laboratory has browser persistence.
+The navigation/palette adaptation originated at `a891934a2c894d55c29fdd2a085268f391e3e4b5`; Agent delegation behavior was checked at the production reference above. (Both are original-project commits; they are not present in this branch.) This standalone example is not a pixel-exact production build. Other CRM pages remain ordinary UI simulations whose state resets on refresh; only the laboratory has browser persistence.
 
 ## Test
 
