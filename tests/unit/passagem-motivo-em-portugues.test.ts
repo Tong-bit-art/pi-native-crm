@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -166,7 +166,9 @@ describe("o motivo da passagem tem frase em português", () => {
         // `caso_escalado_em`, e `sem_telefone` não pode casar num nome de
         // variável que contenha o trecho.
         if (!new RegExp(`\\b${codigo}\\b`, "u").test(fonte)) continue;
-        const par = `${relative(RAIZ, arquivo)} → ${codigo}`;
+        // Caminho relativo em `/` antes de entrar na comparação com a allowlist —
+        // `relative` devolve `\` no Windows e a allowlist é escrita em `/`.
+        const par = `${relative(RAIZ, arquivo).split(sep).join("/")} → ${codigo}`;
         if (!liberados.has(par)) vazamentos.push(par);
       }
     }
