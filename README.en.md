@@ -4,9 +4,9 @@
 
 **A self-hosted CRM workspace where AI agents work inside the real CRM — with controlled actions, human approval, run replay, and outcome evaluation.**
 
-One concrete loop this codebase implements end to end: *a sales-ops agent investigates a stalled opportunity, assembles evidence, and proposes a reversible field change for approval; a human approves or rejects it; the run can be replayed and its outcome evaluated.* The same workspace runs customer conversations through an approval-and-audit pipeline.
+The source code contains these modules: *a sales-ops agent that investigates a stalled opportunity and can propose a reversible field change (approval required); an approval flow; run replay; and outcome evaluation* — plus the customer-conversation pipeline with its approval and audit steps. What is verified in this branch so far: the static preview below and the repository check suites ([onboarding report](docs/testing/2026-10-11-community-onboarding.md)). The full live pipeline (real Supabase/Redis, model calls, approvals, undo, replay, evaluation) has **not** been re-verified in this branch yet; no end-to-end success claim is made here. Approval and undo apply to the action types the code actually supports — not to any arbitrary CRM operation.
 
-**Status (2026-10-11).** Community onboarding in progress. The demo below is a static synthetic preview and needs no keys. The real backend runs locally from this repository. Production self-hosting from this branch is **not yet verified** — see [ORIGIN.md](ORIGIN.md) and the [onboarding report](docs/testing/2026-10-11-community-onboarding.md).
+**Status (2026-10-11).** Community onboarding in progress. Verified so far in this branch: the static preview below (no keys), clean-clone install, the check suites, and the demo's clean-clone `npm ci`. The real backend is designed to run locally from this repository (setup below). Production self-hosting from this branch is **not yet verified** — see [ORIGIN.md](ORIGIN.md) and the [round-2 report](docs/testing/2026-10-11-community-onboarding-round2.md).
 
 ## 1-minute preview (no keys, no backend)
 
@@ -57,6 +57,8 @@ pnpm dev:crons           # local scheduler helpers
 ```
 
 Open <http://localhost:3000/app/ai/workbench>, sign in, bind a real model credential in the organization settings, pick a built-in agent and a CRM object, and start a run.
+
+These instructions come from the project's own setup guide; running the full live pipeline in this branch is still pending verification (scope and pending items: [round-2 report](docs/testing/2026-10-11-community-onboarding-round2.md)).
 
 Mem0 / WeKnora / Langfuse are **optional** services, bound per organization; the core workbench does not depend on them. See [infra/local-agent-services/README.md](infra/local-agent-services/README.md) and [docs/integrations/agent-services.md](docs/integrations/agent-services.md).
 

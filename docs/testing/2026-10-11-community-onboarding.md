@@ -105,8 +105,8 @@
 
 ## 8. 全量单测（主仓库，`pnpm test:unit`）
 
-- 结果：**exit 1；1321 文件：30 failed / 1291 passed；12892 用例：64 failed / 12813 passed / 1 expected fail / 14 skipped**（main-test-unit.log）。
-- 失败 = 15 个 cercas 文件 + 15 个 produto 文件；**未发现由本轮改动引起的新失败**。逐项归因：
+- 结果：**exit 1；1321 文件：30 failed / 1291 passed；12892 用例：64 failed / 12813 passed / 1 expected fail / 14 skipped**（main-test-unit.log，Node 24 环境）。
+- 失败 = 15 个 cercas 文件 + 15 个 produto 文件。**执行者观察（非已证明结论）**：未发现由本轮改动引起的新失败——产品侧没有同环境同命令的"改前全量基线"；下表区分**已复现原因**与**待复现分类**，第 2 轮的复跑与修复结果见第二轮报告。
 
 **cercas（15）**— 14 个与基线一致的环境类：`e2e-cria-o-dono`、`e2e-parte-4`、`e2e-so-aceita`、`executor-proprio`、`gerar-env-e2e-extensoes`、`guarda-da-release-*`（×2）、`imagens-ok`、`indice-de-contato`、`invariants-so-aceita`、`knobs`、`main-sem-migration`、`performed-at-um-relogio`、`release-chega-na-lp`（bash/WSL、grep/rg 缺失、Windows 分隔符、超时）；第 15 个 = `documentacao`（当时缺少本报告——创建后复跑通过，§9）。
 
@@ -114,16 +114,17 @@
 
 | 文件 | 归因 |
 | --- | --- |
-| `branding` | `spawnSync rg ENOENT`（本机无 ripgrep）；内容半部独立核验：`git grep -i -F -e <禁词>` = 0 命中 |
-| `namespace-das-imagens` | `bash` / `grep` 缺失（“a varredura do namespace não rodou”） |
-| `lgpd-pdf-meet` / `lgpd-pdf-replies` | pdfjs-dist 在 `.pnpm` Windows 路径下的 `Invalid factory url` |
-| `gateway-destino-por-caminho` | 同类级联（pdfjs 导入失败） |
-| `projecao-conversador` | 依赖 `evidence/ia-360-w4/**`——第 1 轮有意未导入 `evidence/`（**需要 Codex 决策**，§10-1） |
-| `painel-nao-promete-o-que-nao-cumpre` | 扫描在 Windows 失效（“a sonda enxerga (controle positivo): 0”），级联误报 |
-| `confianca-do-handoff` / `followups-de-demonstracao` / `passagem-motivo` / `rascunho-superado` | `readdirSync + join` 产出 `\` 路径、与 `/` 比较（与任务 01 同类跨平台形态） |
-| `tailwind-tokens` | 快照自带命中（未触碰组件 / CSS）→ 观察项 |
-| `DiasBloqueados.test.tsx` | 日期 / 本机 locale（zh-CN）相关 |
-| `model-adapter` / `create-or-move-lead` | 对象形状差异 / hook 10s 超时（高负载）→ 疑环境；观察项 |
+| `branding` | **已复现**：`spawnSync rg ENOENT`（本机无 ripgrep）；内容半部独立核验：`git grep -i -F -e <禁词>` = 0 命中 |
+| `namespace-das-imagens` | **已复现并已复跑通过**（第 2 轮补齐 Git for Windows 的 bash/grep 后 16/16） |
+| `lgpd-pdf-meet` / `lgpd-pdf-replies` | **已复现现象**：pdfjs-dist 在 `.pnpm` Windows 路径下 `Invalid factory url`；修复留待裁决 |
+| `gateway-destino-por-caminho` | **待复现分类**（疑 pdfjs 级联，未单独隔离确认） |
+| `projecao-conversador` | **已裁决并修复**（第 2 轮）：恢复最小脱敏样本 `tests/fixtures/agent-projection/`，20/20 通过 |
+| `painel-nao-promete-o-que-nao-cumpre` | **待复现分类**：扫描在 Windows 失效（控制正例为 0），级联误报 |
+| `confianca-do-handoff` / `followups-de-demonstracao` / `passagem-motivo` / `rascunho-superado` | **已修复**（第 2 轮）：四组路径归一化，33/33 通过（含负向控制） |
+| `tailwind-tokens` | **待复现分类**（本轮未复现） |
+| `DiasBloqueados.test.tsx` | **第 2 轮单独复跑：仍失败**；最小报错：TestingLibrary 找不到 `/08\/10\/2026|10\/8\/2026/` 文本（日期 / 本机 locale 相关）——待复现分类，未修 |
+| `model-adapter` | **第 2 轮单独复跑：仍失败**；最小报错：对象形状 `to match object` 差异（id `crm-test-model`）——待复现分类，未修 |
+| `create-or-move-lead` | **第 2 轮单独复跑：仍失败**；最小报错：`Hook timed out in 10000ms`——待复现分类，未修 |
 
 - 未执行：`test:db`（需 Docker）、`test:e2e`、`test:shell`、`build`（超出本机验证范围，按任务单留给后续阶段）。
 - 未验证：Linux CI 实跑；便携 Node 22 zip 的 GPG 校验。
@@ -142,11 +143,11 @@
 
 ## 10. 需要 Codex 决策 / 与任务单不同的处理
 
-1. **`projecao-conversador`（依赖 evidence/）**：从分发中移除该测试 / 恢复最小证据集 / 其他——请裁决。
-2. **ORIGIN 与「移除命名空间」守卫的冲突**：本仓库测试禁止被移除的旧品牌词出现在任何仓库文本（`git grep` 全库 + 文件名）；ORIGIN.md 因此只写到「作者以 `melgarafael` 账号维护后继公开仓库，本文件刻意不重述其现名 / URL」，并保留原项目地址（`helsome/AiNativeCrm`，已不可达）。若要求写明上游现 URL，需要对该守卫做例外决策。
-3. **example 锁文件**：`package-lock.json` 未被跟踪 → 干净克隆 `npm ci` 不可行（文档记载的 `npm install` 可用且版本精确）。是否跟踪该锁文件，或调整文档。
-4. **其余扫描类测试**（§8 表中同形模式）是否纳入下一轮「跨平台检查修复」。
-5. **GitHub About / Topics / Release / CI 的执行时机**（§11，本轮只交付材料）。
+1. **`projecao-conversador`（依赖 evidence/）** — ✅ **已裁决并实施（第 2 轮）**：恢复最小脱敏样本、保留测试。
+2. **ORIGIN 与「移除命名空间」守卫的冲突** — ✅ **已裁决并实施（第 2 轮）**：ORIGIN 写入唯一 canonical URL；守卫仅对精确 token、仅在该文件放行，其余形态继续拦截。
+3. **example 锁文件** — ✅ **已裁决并实施（第 2 轮）**：跟踪 `examples/chat-first-demo/package-lock.json`；干净克隆 `npm ci` 通过。
+4. **其余扫描类测试** — ✅ **已裁决并实施（第 2 轮）**：四组同类路径扫描修复；PDF / 日期 / 对象形状 / 超时保留为待复现分类。
+5. **GitHub About / Topics / Release / CI** — 第 2 轮交付 CI 启用方案与最终文本（第二轮报告）；远端操作待对外操作单。
 
 **与任务单不同的处理（已执行，供复核）**：
 - 恢复 `.cursor/rules/pi-native-guias.mdc` 与 `.codex/hooks.json`（第 1 轮清理过度排除；`skills-embutidas` 明确要求其随仓库发布），并从 `.gitignore` 移除对应两行——修复后该门禁 75/75。
@@ -157,7 +158,7 @@
 - **About**：双语描述已设置（现状描述）；homepage 建议暂空（无在线演示，不占位）。
 - **Topics 建议**：`crm`、`ai-agents`、`self-hosted`、`nextjs`、`supabase`、`mcp`、`whatsapp`。
 - **演示链接**：暂无在线演示——待静态演示发布后填写。
-- **CI 证据**：仓库 Actions 当前为**禁用**状态（导入轮的防红叉措施）；本提交没有产品 CI 运行记录（仅 2 条 Dependabot）。建议下一轮启用最小子集（typecheck / lint / test:unit）并记录首个绿色运行，再公开徽章。
+- **CI 证据**：仓库 Actions 当前为**禁用**状态（导入轮的防红叉措施）；本提交没有产品 CI 运行记录（仅 2 条 Dependabot）。第 2 轮交付了复用现有 `ci.yml` 的启用方案（含 runner / 工具 / secret 依赖与全量范围声明，见第二轮报告 §5）；启用后首个绿色运行须绑定真实 SHA 与 run URL 才能挂徽章。
 - **Release**：暂无 tag / release；建议在阶段 4（本分支发布链路）完成后切首个版本。
 
 ## 12. 来源说明中的待核实清单（与 ORIGIN.md 一致）
