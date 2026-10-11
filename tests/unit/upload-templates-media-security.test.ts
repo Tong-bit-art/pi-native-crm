@@ -35,8 +35,12 @@ describe("Upload de mídia para templates (POST /api/v1/channels/partner/templat
 
     const req = new NextRequest("http://localhost/api/v1/channels/partner/templates/media", {
       method: "POST",
-      body: formData,
     });
+    // jsdom 30.1.2 quebra `new NextRequest(..., { body: FormData })`
+    // (`Cannot read properties of undefined (reading '_buffer')`); o corpo vai
+    // pelo override, como nos testes irmãos deste arquivo. A rota decide o 403
+    // no requireRole ANTES de ler o formData — o que este teste verifica.
+    req.formData = async () => formData;
 
     const res = await POST(req);
     expect(res.status).toBe(403);
