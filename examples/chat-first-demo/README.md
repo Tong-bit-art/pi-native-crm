@@ -108,12 +108,17 @@ The navigation/palette adaptation originated at `a891934a2c894d55c29fdd2a085268f
 
 ## Test
 
-From this example directory, install its two development dependencies and run:
+From this example directory, install the pinned development dependencies from
+the tracked lockfile and run the suite:
 
 ```sh
-npm install
+npm ci
 npm test
 ```
+
+The lockfile is tracked so the two test dependencies resolve to the same tree on
+any machine; the static preview (`dist/` + `scripts/serve-agent-demo.mjs`) needs
+no installation at all.
 
 The engine-only suite needs no installed packages:
 

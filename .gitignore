@@ -202,3 +202,17 @@ __pycache__/
 /triagem/
 /experiments/
 /.specs/
+
+# Local tool settings stay local; only the reviewed contributor doors ship.
+# Same allow-by-file shape the repo already uses for .claude (see above).
+/.codex/*
+!/.codex/hooks.json
+/.cursor/*
+!/.cursor/rules/
+/.cursor/rules/*
+!/.cursor/rules/pi-native-guias.mdc
+
+# The standalone example tracks its own npm lockfile so a clean checkout can
+# `npm ci`. The root project keeps pnpm@9.15.9 + pnpm-lock.yaml as the single
+# source (see the lockfile note above).
+!/examples/chat-first-demo/package-lock.json
