@@ -7,7 +7,8 @@ import { resolvePiModel } from "./model-adapter";
  * provedor — e um binding explícito vence os dois (medido aqui, não presumido).
  * O ambiente de quem roda não pode decidir o resultado: cada caso controla a
  * variável, o `beforeEach` parte de ausente e o `afterEach` restaura — o mesmo
- * padrão de isolamento de `tests/unit/canal-zernio-base-url-vazia.test.ts`.
+ * padrão de isolamento do teste irmão que mede base URL vazia (nome de arquivo
+ * com o sufixo `-base-url-vazia.test.ts`).
  */
 const CHAVE_DO_AMBIENTE = "OPENROUTER_BASE_URL";
 
