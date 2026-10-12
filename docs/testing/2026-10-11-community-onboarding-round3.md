@@ -12,7 +12,7 @@
 | 02 env 解析与模型隔离 | ✅ | `parse-test-env`（parseEnv + 测量过的空格边界）；模型逐案隔离 + 优先级；三种环境均稳定 |
 | 03 日期测试 locale | ✅ | 先复现（zh-CN）后绿；spy 保持真实日期参与格式化；6/6 |
 | 04 启用验证 CI + 分支 + Draft PR + Topics | ✅ | vigia/relogio 先禁用；Actions 开启；分支推送；**Draft PR #8**；Topics 六项；首轮 CI 结果见 §4 |
-| 05 CI 残余失败最小复现 + 修复 | ✅ | 六处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 与 `lint:channels`（§5.5）、Kit 的 `loop/hooks` 与 README 跨平台调用（§5.6）；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
+| 05 CI 残余失败最小复现 + 修复 | ✅ | 六处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 与 `lint:channels`（§5.5）、Kit 的 `loop/hooks` 与 README 跨平台调用（§5.6）；**第四轮 CI：`verify` 全绿（§4）**；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
 
 ## 1. 起点、远端现状与工具
 
@@ -108,6 +108,17 @@
 | perf | ✅ success | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38205435144 | |
 | publish-image | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38205435113 | 同 §5.2 |
 
+### CI 第四轮结果（head `8c1907c`，Kit 修复后）—— **`verify` 全绿**
+
+| Workflow | 结论 | Run URL | 备注 |
+| --- | --- | --- | --- |
+| ci | ✅ success | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38208459025 | **`verify-parte (1)` ✅ + `verify-parte (2)` ✅ + `verify` ✅ + `invariants` ✅**——verify 管线首次完整通过 |
+| perf | ✅ success | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38208459100 | |
+| e2e | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38208459062 | 已确认的产品侧红 + 30 分钟预算（§5.3），待裁决 |
+| publish-image | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38208459072 | 已确认的 tag 不匹配（§5.2），待裁决 |
+
+**Kit self-host 全链在 Linux 首次跑通（20/20，链式 `&&` 全退出 0）**，逐测试证据：`guard-hooks-atualizados: 7 casos ok`、`hooks-nao-acusam-a-main: 128 casos, 0 falha(s)`（本机 15 项全部为 Windows 类，Linux 零红）、`colisao-de-migration: 102`、`instalar-guias: 26`（symlink 组与 README 组在 Linux 皆过）、`pi-native-contribuir: 45`、`senha do cron vazada: todos os casos passaram` 等；unit 1/2 与 2/2、cercas、typecheck、lint、`lint:channels`、Role rank、Colisão、主树检查、`.changes` 预算全部通过。
+
 ## 5. 任务 05：CI 残余失败最小复现与修复
 
 ### 5.1 已修：两个 `rg` 依赖（跨平台根因）
@@ -187,7 +198,7 @@
 
 ## 7. 需要 Codex 决策 / 下一步
 
-1. **第四轮复验**：第三轮（`659b897`）已把 `verify-parte (1)` 全部跑绿（含首次执行的 Unit 1/2）；part 2 的 Kit 随后又暴露两处（§5.6，已修：`71c523a` 恢复 `loop/hooks`、`c3f79ae` README 指南小节）。第四轮 CI（head 为随后推送的新 SHA）将首次在 Linux 上测量 `hooks-nao-acusam-a-main`、`instalar-guias` 的 symlink 组、`extensao-nao-instala` 等此前从未跑到的用例；不预设全绿。
+1. **状态（2026-10-12）**：第四轮 CI 后 `verify` / `perf` / `invariants` 全绿（head `8c1907c`）；本报告更新的提交会再触发一轮（docs-only，预期同型）。剩余裁决项见下。
 2. **publish-image tag 不匹配**（§5.2）：是否按最小提案修两行（packaging 域）。
 3. **e2e**（§5.3）：红色 spec 列表的处置（产品对照 vs 分片预算调整）不在本轮范围，请裁决下一轮范围。
 4. **负载/hook 组**：Linux CI 全绿 + 本机受控记录在案 → 建议按"Windows 平台/负载类"归档，不再列为待复现产品问题。
