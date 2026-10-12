@@ -195,8 +195,13 @@ __pycache__/
 # — Buyer's note: seller-internal material is intentionally NOT published from
 # this copy of the repository (it lives locally in a sibling backup folder).
 # Anchored at the root so no nested path with these names is affected.
+# EXCEÇÃO: loop/hooks/ são as guardas de commit do mantenedor — versionadas
+# publicamente no repositório upstream do autor e o sujeito dos testes de
+# tests/shell/ — então entram; o resto de loop/ (checkpoints, INBOX, docs do
+# loop interno) continua fora.
 /evidence/
-/loop/
+/loop/*
+!/loop/hooks/
 /plan/
 /tasks/
 /triagem/
