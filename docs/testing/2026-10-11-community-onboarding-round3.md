@@ -12,7 +12,7 @@
 | 02 env 解析与模型隔离 | ✅ | `parse-test-env`（parseEnv + 测量过的空格边界）；模型逐案隔离 + 优先级；三种环境均稳定 |
 | 03 日期测试 locale | ✅ | 先复现（zh-CN）后绿；spy 保持真实日期参与格式化；6/6 |
 | 04 启用验证 CI + 分支 + Draft PR + Topics | ✅ | vigia/relogio 先禁用；Actions 开启；分支推送；**Draft PR #8**；Topics 六项；首轮 CI 结果见 §4 |
-| 05 CI 残余失败最小复现 + 修复 | ✅ | 四处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 泄漏与 `lint:channels` 注释（§5.5）；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
+| 05 CI 残余失败最小复现 + 修复 | ✅ | 六处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 与 `lint:channels`（§5.5）、Kit 的 `loop/hooks` 与 README 跨平台调用（§5.6）；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
 
 ## 1. 起点、远端现状与工具
 
@@ -99,6 +99,15 @@
 - 通过 `--failed` 定向重跑确认两处红为**确定性**（同步骤、同断言、同 SHA）。
 - **步骤级事实（重要）**：`verify-parte (1)` 在 `lint:channels` 失败后，其后的 Role rank / Colisão de migration / 主树检查 / **Unit parte 1/2** / `.changes` / Kit **全部被 skip**——这些步骤在修复前**从未在 CI 上运行过**；`verify-parte (2)` 走到了 unit 2/2 ✅ 与 Kit ❌。下一轮 CI 将首次真正测量被 skip 的步骤。
 
+### CI 第三轮结果（head `659b897`，rg/lint/GITHUB_REF 修复后）
+
+| Workflow | 结论 | Run URL | 备注 |
+| --- | --- | --- | --- |
+| ci | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38205435107 | **`verify-parte (1)` 全绿**（cercas、typecheck、lint、`lint:channels`、Role rank、Colisão、主树检查、**Unit 1/2 首次执行**、`.changes`）；`verify-parte (2)` 在 Kit 的 `guard-hooks-atualizados`（7/7）失败——`colisao-de-migration` 已 **102/102 绿**（GITHUB_REF 修复在 CI 得到验证） |
+| e2e | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38205435104 | 同前（红 + 预算） |
+| perf | ✅ success | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38205435144 | |
+| publish-image | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38205435113 | 同 §5.2 |
+
 ## 5. 任务 05：CI 残余失败最小复现与修复
 
 ### 5.1 已修：两个 `rg` 依赖（跨平台根因）
@@ -154,6 +163,21 @@
 - 修复：隔离区 `unset GITHUB_REF`（含测量注释）。其余 shell 测试不读 `GITHUB_*`。
 - 验证：修复后带/不带该变量均 **102/102**。
 
+### 5.6 三轮后 Kit 的剩余阻塞（已修：`loop/hooks` 与 README）
+
+**a) `guard-hooks-atualizados` 7/7 红 → `loop/hooks` 恢复　`71c523a`**
+
+- 根因：清洁副本把 `loop/` 整目录排除（`.gitignore` `/loop/`），而 `tests/shell/guard-hooks-atualizados.test.sh` 与 `hooks-nao-acusam-a-main.test.sh` 直接拷贝 `$RAIZ/loop/hooks/` 的脚本——本机与 CI 都没有它。**上游公开仓库经只读 API 核对就是公开跟踪 `loop/hooks/` 的**，且 `CONTRIBUTING.md` 等公开文档以它为主语；脚本无 PII、无旧品牌词。
+- 处理：恢复快照版 8 个脚本（来自 `_excluded_backup/loop/hooks`，即当年被排除的原件）；`.gitignore` 的买家说明区由 `/loop/` 收窄为 `/loop/*` + `!/loop/hooks/`；`loop/` 其余内容（checkpoints、INBOX、LOOP.md）继续不发布。
+- 验证：`guard-hooks-atualizados` **7/7**（此前 7/7 红）；`hooks-nao-acusam-a-main` 128 用例，15 项本机红全部为 Windows 环境类（`core.filemode=false` 的 MODO/COMENTARIO-MODO、文件名含 `"` 的 CITADO、`python3` 为 Store 存根使夹具空转的 F-A/F-B+/F-BIG+）——Linux 实测待第四轮 CI。
+- 插曲：品牌守卫当场抓住我在 `.gitignore` 注释里直写上游仓库名（含旧品牌词）；注释改写后 branding **57/57**——守卫按预期工作。
+
+**b) README 缺"跨平台调用" → 平台无关的真红（已修　`c3f79ae`）**
+
+- `instalar-guias.test.sh` 断言 `README.md` 含 `$pi-native-instalar` 且无 `digite …/pi-native-` 形式；快照导入以来 README 从未有过该子串（`git log -S` 为空）——CI 上同样会红。
+- 修复：README.md 增加"内置助理指南（Skills）"小节，措辞全部取自仓库既有原文（`scripts/instalar-guias.sh:275`、`hostgator-setup-kit/README.md:16`、`AGENTS.md`）。
+- 验证：该用例转绿（本机 10→9 红）；其余 9 项为 symlink 类（Git Bash 的 `ln -s` 退化为拷贝）；`extensao-nao-instala` 的 2 项为无 `jq`——均为 Windows 本机类（CI 有 symlink 与 jq）。
+
 ## 6. 与验收对照
 
 - 任务 01–03 断言未弱化；末段两处修复（§5.5）同样先红后绿，未弱化任何断言；样本与根依赖约束未变（本轮提交未改 `package.json`/`pnpm-lock.yaml`/overrides，仅合并 main 既有 bump）。
@@ -163,7 +187,7 @@
 
 ## 7. 需要 Codex 决策 / 下一步
 
-1. **下轮复验**：`929b0fa` + `96228e3` 推送后，第三轮 CI 将**首次**执行此前被 skip 的步骤（Unit 1/2、Role rank、Colisão de migration、主树检查、`.changes` 屏幕预算、Kit）；任何新红都会如实回报，不预设全绿。
+1. **第四轮复验**：第三轮（`659b897`）已把 `verify-parte (1)` 全部跑绿（含首次执行的 Unit 1/2）；part 2 的 Kit 随后又暴露两处（§5.6，已修：`71c523a` 恢复 `loop/hooks`、`c3f79ae` README 指南小节）。第四轮 CI（head 为随后推送的新 SHA）将首次在 Linux 上测量 `hooks-nao-acusam-a-main`、`instalar-guias` 的 symlink 组、`extensao-nao-instala` 等此前从未跑到的用例；不预设全绿。
 2. **publish-image tag 不匹配**（§5.2）：是否按最小提案修两行（packaging 域）。
 3. **e2e**（§5.3）：红色 spec 列表的处置（产品对照 vs 分片预算调整）不在本轮范围，请裁决下一轮范围。
 4. **负载/hook 组**：Linux CI 全绿 + 本机受控记录在案 → 建议按"Windows 平台/负载类"归档，不再列为待复现产品问题。
