@@ -34,5 +34,10 @@ export function parseTestEnv(content: string): Record<string, string> {
     .split(/\r?\n/)
     .map((linha) => linha.replace(/\s+$/, ""))
     .join("\n");
-  return parseEnv(semEspacosNaBorda);
+  const lido = parseEnv(semEspacosNaBorda);
+  const valores: Record<string, string> = {};
+  for (const [chave, valor] of Object.entries(lido)) {
+    if (valor !== undefined) valores[chave] = valor;
+  }
+  return valores;
 }
