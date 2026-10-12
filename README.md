@@ -198,6 +198,7 @@ Mem0、WeKnora 与 Langfuse 是**可选**的第三方服务：核心工作台不
 
 - **2026-10-11 社区入门轮次**：干净克隆安装（Node 22 / pnpm 9.15.9）、Windows 架构检查路径修复、公开入口与来源说明整理。[查看本轮报告](docs/testing/2026-10-11-community-onboarding.md)
 - **2026-10-11 第二轮（可复现测试与准确说明）**：脱敏回归样本、来源 URL 例外、演示锁文件与本地工具允许列表、四组跨平台路径扫描修复、英文首页与报告措辞校准。[查看第二轮报告](docs/testing/2026-10-11-community-onboarding-round2.md)
+- **2026-10-11 第三轮（确定性测试与真实 CI）**：来源 URL 完整边界矩阵、测试 `.env` 解析与模型环境隔离、日期测试 locale 固定；启用验证 CI 并推送审查分支（[Draft PR #8](https://github.com/Tong-bit-art/pi-native-crm/pull/8)），真实 run 结果见报告。[查看第三轮报告](docs/testing/2026-10-11-community-onboarding-round3.md)
 
 执行记录用于证明实际链路，业务结果由证据与验收条件核验；详细测量范围保存在对应报告中。
 
