@@ -230,4 +230,8 @@ Mem0、WeKnora 与 Langfuse 是**可选**的第三方服务：核心工作台不
 - [本地服务启动与联调](infra/local-agent-services/README.md)
 - [专项 E2E 测试入口](tests/e2e/configs/README.md)
 
+### 内置助理指南（Skills）
+
+任务指南随仓库分发：`.agents/skills/` 由 Codex、Cursor、OpenCode 与 Antigravity 读取，`.claude/skills/` 是 Claude Code 读取的镜像。按名调用：Claude Code、Cursor 与 Antigravity 用 `/pi-native-instalar`；Codex 用 `$pi-native-instalar`；OpenCode 直接说"使用 pi-native-instalar 指南"。把指南装进本机各 CLI：`bash scripts/instalar-guias.sh`。
+
 内部开发先阅读 [AGENTS.md](AGENTS.md)与[CLAUDE.md](CLAUDE.md)。本项目包含继承代码，遵循 [MIT 许可及原版权声明](LICENSE)。
