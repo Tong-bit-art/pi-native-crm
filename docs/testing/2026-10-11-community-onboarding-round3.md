@@ -12,7 +12,7 @@
 | 02 env 解析与模型隔离 | ✅ | `parse-test-env`（parseEnv + 测量过的空格边界）；模型逐案隔离 + 优先级；三种环境均稳定 |
 | 03 日期测试 locale | ✅ | 先复现（zh-CN）后绿；spy 保持真实日期参与格式化；6/6 |
 | 04 启用验证 CI + 分支 + Draft PR + Topics | ✅ | vigia/relogio 先禁用；Actions 开启；分支推送；**Draft PR #8**；Topics 六项；首轮 CI 结果见 §4 |
-| 05 CI 残余失败最小复现 + 修复 | ✅ | 六处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 与 `lint:channels`（§5.5）、Kit 的 `loop/hooks` 与 README 跨平台调用（§5.6）；**第四轮 CI：`verify` 全绿（§4）**；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
+| 05 CI 残余失败最小复现 + 修复 | ✅ | 六处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 与 `lint:channels`（§5.5）、Kit 的 `loop/hooks` 与 README 跨平台调用（§5.6）；**第四轮 CI：`verify` 全绿（§4）**；镜像 tag 已修待第六轮实测、e2e 留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
 
 ## 1. 起点、远端现状与工具
 
@@ -129,11 +129,11 @@
 - 验证：无 rg 环境 **60/60**；正常环境 **60/60**；负向控制（staging 一个带旧品牌词的文件名）仍精确命中并恢复；提交 `4332945`（本报告提交前的修复提交）。
 - 对既有清单的更正：第一/二轮把 `knobs` 记作"扫描在 Windows 失效"、把 `branding` 记作"rg 缺失（环境类）"——正确表述是**两个测试对 rg 的硬依赖在无 rg 的 runner 上确定性失败**；两平台同因，现已修复。
 
-### 5.2 已确认缺陷、未修（需要裁决）：publish-image 的 tag 不匹配
+### 5.2 publish-image 的 tag 不匹配（已修，用户授权）
 
-- CI 证据：构建步骤产出 **`pi-native-crm-smoke:pr`**（`publish-image.yml:321`），冒烟步骤运行 **`pi-native-smoke:pr`**（`:341`，PDF 探针同样 `:397`）→ "Unable to find image locally" → 尝试 pull → `pull access denied` → exit 125。
-- 确认：不一致存在于**快照文件本身**（本轮未改过该工作流）。
-- 最小修复提案：将 `:341` 与 `:397` 的引用改为 `pi-native-crm-smoke:pr`（两行，属 packaging 域，等待裁决后实施）。
+- CI 证据：构建步骤产出 **`pi-native-crm-smoke:pr`**（`publish-image.yml:321`，`load: true`），冒烟步骤运行 **`pi-native-smoke:pr`**（`:341`，PDF 探针同样 `:397`）→ "Unable to find image locally" → 尝试 pull → `pull access denied` → exit 125。
+- 确认：不一致存在于**快照文件本身**（本轮此前未改过该工作流）。
+- 修复（随本报告一同推送）：`:341` 与 `:397` 对齐为 `pi-native-crm-smoke:pr`；作业仍不推送，PR 的 `build-and-push`/`promover-stable` 继续按语义跳过；Packaging 的"发布是手动行为"未动。第六轮 CI 实测该组（`imagem-do-app-sobe` + `imagens-ok`）。
 
 ### 5.3 e2e：红色 spec + 30 分钟预算
 
@@ -199,7 +199,7 @@
 ## 7. 需要 Codex 决策 / 下一步
 
 1. **状态（2026-10-12）**：第四轮 CI 后 `verify` / `perf` / `invariants` 全绿（head `8c1907c`）；本报告更新的提交会再触发一轮（docs-only，预期同型）。剩余裁决项见下。
-2. **publish-image tag 不匹配**（§5.2）：是否按最小提案修两行（packaging 域）。
+2. **publish-image tag 不匹配**：已按用户授权修复（§5.2）；第六轮 CI 实测中。
 3. **e2e**（§5.3）：红色 spec 列表的处置（产品对照 vs 分片预算调整）不在本轮范围，请裁决下一轮范围。
 4. **负载/hook 组**：Linux CI 全绿 + 本机受控记录在案 → 建议按"Windows 平台/负载类"归档，不再列为待复现产品问题。
 5. PR #8 保持 Draft，等待上述裁决后决定合并节奏。
