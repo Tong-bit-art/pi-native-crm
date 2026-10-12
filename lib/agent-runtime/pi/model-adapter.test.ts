@@ -1,6 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { resolvePiModel } from "./model-adapter";
+
+/**
+ * O adapter lê `OPENROUTER_BASE_URL` do ambiente como override do default do
+ * provedor — e um binding explícito vence os dois (medido aqui, não presumido).
+ * O ambiente de quem roda não pode decidir o resultado: cada caso controla a
+ * variável, o `beforeEach` parte de ausente e o `afterEach` restaura — o mesmo
+ * padrão de isolamento de `tests/unit/canal-zernio-base-url-vazia.test.ts`.
+ */
+const CHAVE_DO_AMBIENTE = "OPENROUTER_BASE_URL";
+
+let original: string | undefined;
+beforeEach(() => {
+  original = process.env[CHAVE_DO_AMBIENTE];
+  delete process.env[CHAVE_DO_AMBIENTE];
+});
+afterEach(() => {
+  if (original === undefined) delete process.env[CHAVE_DO_AMBIENTE];
+  else process.env[CHAVE_DO_AMBIENTE] = original;
+});
 
 describe("Pi model adapter", () => {
   it.each([
@@ -52,5 +71,46 @@ describe("Pi model adapter", () => {
     await expect(
       resolvePiModel({ provider: "unsupported", model: "m", apiKey: "k" }),
     ).rejects.toThrow("Pi provider not supported by the CRM adapter");
+  });
+
+  it("o override de ambiente vence o default do provedor", async () => {
+    process.env[CHAVE_DO_AMBIENTE] = "https://gateway-da-org.example.test/v1";
+    const resolved = await resolvePiModel({
+      provider: "openrouter",
+      model: "crm-test-model",
+      apiKey: "test-key",
+    });
+    expect(resolved.model).toMatchObject({ baseUrl: "https://gateway-da-org.example.test/v1" });
+  });
+
+  it("o binding explícito vence o override de ambiente", async () => {
+    process.env[CHAVE_DO_AMBIENTE] = "https://gateway-da-org.example.test/v1";
+    const resolved = await resolvePiModel({
+      provider: "openrouter",
+      model: "crm-test-model",
+      apiKey: "test-key",
+      baseUrl: "https://binding-explicito.example.test/v1",
+    });
+    expect(resolved.model).toMatchObject({ baseUrl: "https://binding-explicito.example.test/v1" });
+  });
+
+  it("ambiente só com espaço em branco cai no default — não vira endpoint", async () => {
+    process.env[CHAVE_DO_AMBIENTE] = "   ";
+    const resolved = await resolvePiModel({
+      provider: "openrouter",
+      model: "crm-test-model",
+      apiKey: "test-key",
+    });
+    expect(resolved.model).toMatchObject({ baseUrl: "https://openrouter.ai/api/v1" });
+  });
+
+  it("o override é do OpenRouter — os outros provedores seguem canônicos", async () => {
+    process.env[CHAVE_DO_AMBIENTE] = "https://gateway-da-org.example.test/v1";
+    const resolved = await resolvePiModel({
+      provider: "anthropic",
+      model: "crm-test-model",
+      apiKey: "test-key",
+    });
+    expect(resolved.model).toMatchObject({ baseUrl: "https://api.anthropic.com" });
   });
 });
