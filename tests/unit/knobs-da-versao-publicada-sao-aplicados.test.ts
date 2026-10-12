@@ -57,14 +57,31 @@ function camposDaConfig(): string[] {
 /** Arquivos que leem o campo, fora do próprio módulo que o carrega. */
 function consumidoresDe(campo: string): string[] {
   try {
+    // `git grep` no lugar de `rg -l`: o runner do CI NÃO tem ripgrep instalado
+    // (medido: spawnSync rg ENOENT no verify do PR #8), e a guarda mede o que
+    // está RASTREADO; os globs de extensão do rg viram filtro em JS abaixo.
     const saida = execFileSync(
-      "rg",
-      ["-l", "-F", "-e", `agentConfig.${campo}`, "-e", `agentConfig?.${campo}`, "--glob", "*.ts", "--glob", "*.tsx", "lib", "workers", "app"],
+      "git",
+      [
+        "grep",
+        "-l",
+        "-F",
+        "-e",
+        `agentConfig.${campo}`,
+        "-e",
+        `agentConfig?.${campo}`,
+        "--",
+        "lib",
+        "workers",
+        "app",
+      ],
       { cwd: RAIZ, encoding: "utf8" },
     );
-    return saida.split("\n").filter((f) => f !== "" && !f.includes("agent-config"));
+    return saida
+      .split("\n")
+      .filter((f) => f !== "" && !f.includes("agent-config") && /\.tsx?$/.test(f));
   } catch {
-    // `rg` sai com 1 quando não encontra nada — ausência, não falha.
+    // `git grep` sai com 1 quando não encontra nada — ausência, não falha.
     return [];
   }
 }

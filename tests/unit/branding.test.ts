@@ -164,9 +164,12 @@ describe("guarda de namespace removido", () => {
     });
 
     const nomeLegado = new RegExp(["desk", "comm"].join(""), "i");
-    const nomes = execFileSync("rg", ["--files"], { cwd: RAIZ, encoding: "utf8" })
-      .trim()
-      .split("\n")
+    // `git ls-files -z` no lugar de `rg --files`: o runner do CI NÃO tem
+    // ripgrep instalado (medido: spawnSync rg ENOENT no verify do PR #8), e o
+    // alvo da guarda são os NOMES RASTREADOS — git existe em qualquer checkout.
+    const nomes = execFileSync("git", ["ls-files", "-z"], { cwd: RAIZ, encoding: "utf8" })
+      .split("\0")
+      .filter(Boolean)
       .filter((nome) => nomeLegado.test(nome));
 
     expect(ocorrencias).toEqual([]);
