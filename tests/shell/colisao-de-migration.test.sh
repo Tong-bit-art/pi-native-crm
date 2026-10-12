@@ -72,6 +72,12 @@ export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 #   2. a descoberta de repositório nunca sobe para fora de "$TMP";
 #   3. identidade por ambiente, não por `git config` (NENHUM teste aqui mede o autor).
 unset $(git rev-parse --local-env-vars)
+# O gate sob prova reconhece o PR DELE lendo `GITHUB_REF` (refs/pull/N/merge):
+# sem neutralizar, o contexto do runner vaza para dentro dos casos — medido no
+# PR #8 deste repositório, cujo `refs/pull/8/merge` fez o gate tratar o #8 da
+# fixture como "o próprio PR" e só o caso 18 ficou vermelho no CI (1 de 102).
+# A suíte controla TODO input por fakes; este também.
+unset GITHUB_REF
 export GIT_CEILING_DIRECTORIES="$TMP"
 export GIT_AUTHOR_NAME="Teste" GIT_AUTHOR_EMAIL="teste@exemplo.invalid"
 export GIT_COMMITTER_NAME="Teste" GIT_COMMITTER_EMAIL="teste@exemplo.invalid"
