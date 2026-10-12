@@ -58,25 +58,88 @@ describe("resolveBranding", () => {
 
 describe("guarda de namespace removido", () => {
   /**
-   * A ÚNICA exceção sancionada: uma URL canônica em `ORIGIN.md`.
+   * A ÚNICA exceção sancionada: a URL canônica COMPLETA, só em `ORIGIN.md`.
    *
    * `ORIGIN.md` precisa apontar o upstream público atual para um estranho poder
    * conferir a linhagem — e a URL carrega o termo removido. A exceção é UM token
-   * exato: só a URL completa, só no `ORIGIN.md`, e com fronteira de URL — um
-   * endereço estendido (path, query ou fragmento) NÃO é exceção, e a mesma URL
-   * em qualquer outro arquivo continua reprovando. O termo é construído em
-   * partes para este próprio arquivo não casar a varredura que ele roda.
+   * exato: a URL inteira, com as DUAS fronteiras (a primeira versão só checava a
+   * direita e perdoava a URL embutida em outra URL — medido na revisão da rodada
+   * 2), só no `ORIGIN.md`, e nada além dela — endereço estendido
+   * (path/query/fragmento) e a mesma URL em outro arquivo continuam reprovando.
+   * O termo é construído em partes para este próprio arquivo não casar a
+   * varredura que ele roda. A matriz permanente logo abaixo é a régua da exceção.
    */
   const URL_CANONICA = ["https://github.com/melgarafael/", "Desk", "commCRM"].join("");
+  // Fronteira ESQUERDA: os caracteres em que a URL deixa de ser um token inteiro
+  // — prefixo de outra URL (`/`), valor de query (`=`), fragmento (`#`), emenda
+  // em palavra (`x`), rótulo (`:`). Ficam de fora, de propósito, os
+  // delimitadores de texto (espaço, `<` `>` `(` `)` `[` `]`, crases e aspas):
+  // são as formas em que um endereço aparece citado como ele mesmo.
+  const FRONTEIRA_ESQUERDA = "(?<![A-Za-z0-9._~:/?#@!$&+,;=%-])";
+  const FRONTEIRA_DIREITA = "(?![A-Za-z0-9._/?#&=%+~-])";
   const RE_URL_CANONICA = new RegExp(
-    URL_CANONICA.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![A-Za-z0-9._/?#&=%+~-])",
+    FRONTEIRA_ESQUERDA + URL_CANONICA.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + FRONTEIRA_DIREITA,
     "g",
   );
 
-  /** A linha de `git grep` sem a exceção — só em `ORIGIN.md`, só o token exato. */
+  /**
+   * O conteúdo de uma linha de `git grep` do `ORIGIN.md` sem a exceção.
+   *
+   * O prefixo `ORIGIN.md:<linha>:` sai ANTES da substituição: o `:` do prefixo
+   * não pode contar como fronteira esquerda (nem concedendo a exceção a uma URL
+   * no início do conteúdo, nem negando uma sancionada). Linha de qualquer outro
+   * arquivo volta intacta — a exceção não alcança outro path.
+   */
   function semExcecaoDeOrigem(linha: string): string {
-    return linha.startsWith("ORIGIN.md:") ? linha.replace(RE_URL_CANONICA, "") : linha;
+    const conteudo = /^ORIGIN\.md:\d+:(.*)$/.exec(linha);
+    if (conteudo === null) return linha;
+    return conteudo[1]!.replace(RE_URL_CANONICA, "");
   }
+
+  /**
+   * A MATRIZ PERMANENTE da exceção — forma sancionada remove; forma proibida
+   * permanece para o scan acusar. A revisão da rodada 2 mediu que a primeira
+   * versão só olhava a fronteira DIREITA e perdoava a URL embutida em outra URL
+   * (`https://exemplo.invalid/<canonica>`); estes casos fixam as duas fronteiras
+   * no repositório, e não só numa sessão de verificação.
+   */
+  const TERMO = ["Desk", "commCRM"].join("");
+  const linhaDeOrigem = (conteudo: string): string => `ORIGIN.md:12:${conteudo}`;
+  const contemTermo = (texto: string): boolean =>
+    texto.toLowerCase().includes(TERMO.toLowerCase());
+
+  it.each([
+    ["dentro de <...> (a forma do ORIGIN.md)", `- **Current public upstream:** <${URL_CANONICA}> — ok`],
+    ["dentro de link Markdown", `veja [o upstream](${URL_CANONICA}) para o histórico`],
+    ["sozinha entre espaços", `antes ${URL_CANONICA} depois`],
+    ["no começo do conteúdo", `${URL_CANONICA} encabeça a linha`],
+    ["entre aspas", `o endereço "${URL_CANONICA}" canônico`],
+    ["em crases", "o endereço `" + URL_CANONICA + "` canônico"],
+  ])("remove a ocorrência sancionada — %s", (_rotulo, conteudo) => {
+    const resultado = semExcecaoDeOrigem(linhaDeOrigem(conteudo));
+    expect(contemTermo(resultado), "a exceção não cobriu uma forma sancionada").toBe(false);
+  });
+
+  it.each([
+    ["como caminho de outra URL", `https://exemplo.invalid/${URL_CANONICA}`],
+    ["como valor de query", `https://exemplo.invalid/?next=${URL_CANONICA}`],
+    ["como fragmento de outra URL", `https://exemplo.invalid/#${URL_CANONICA}`],
+    ["colada num prefixo", `rotulo:${URL_CANONICA}`],
+    ["colada num sufixo", `${URL_CANONICA}sufixo`],
+    ["com sufixo de caminho", `${URL_CANONICA}/extra`],
+    ["com query", `${URL_CANONICA}?pagina=2`],
+    ["com fragmento", `${URL_CANONICA}#topo`],
+    ["de outro domínio", `https://github.com/outra-conta/${TERMO}`],
+    ["como termo nu", `texto com ${TERMO} solto`],
+  ])("NÃO remove — %s", (_rotulo, conteudo) => {
+    const resultado = semExcecaoDeOrigem(linhaDeOrigem(conteudo));
+    expect(contemTermo(resultado), "uma forma proibida foi perdoada pela exceção").toBe(true);
+  });
+
+  it("a mesma URL em OUTRO arquivo não é exceção", () => {
+    const resultado = semExcecaoDeOrigem(`README.md:1:texto <${URL_CANONICA}> aqui`);
+    expect(contemTermo(resultado)).toBe(true);
+  });
 
   it("não deixa a marca anterior voltar para texto ou nomes de arquivo", () => {
     const ocorrencias = nomesLegados().flatMap((termo) => {
