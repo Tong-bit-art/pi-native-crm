@@ -12,7 +12,7 @@
 | 02 env 解析与模型隔离 | ✅ | `parse-test-env`（parseEnv + 测量过的空格边界）；模型逐案隔离 + 优先级；三种环境均稳定 |
 | 03 日期测试 locale | ✅ | 先复现（zh-CN）后绿；spy 保持真实日期参与格式化；6/6 |
 | 04 启用验证 CI + 分支 + Draft PR + Topics | ✅ | vigia/relogio 先禁用；Actions 开启；分支推送；**Draft PR #8**；Topics 六项；首轮 CI 结果见 §4 |
-| 05 CI 残余失败最小复现 + 修复 | ✅ | 两个 `rg` 依赖缺陷已修（§5.1）；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
+| 05 CI 残余失败最小复现 + 修复 | ✅ | 四处确定性缺陷已修：`rg`×2（§5.1）、`GITHUB_REF` 泄漏与 `lint:channels` 注释（§5.5）；镜像 tag 不匹配与 e2e 两项留裁决（§5.2–5.3）；Windows 残留全部在 Linux 通过（§5.4） |
 
 ## 1. 起点、远端现状与工具
 
@@ -87,6 +87,18 @@
 - 未运行：release（手动专属）、vigia/relogio（已禁用）。无取消。
 - **关键结论**：cercas 在 Linux 上 **1384/1386 通过**（唯一失败 = `knobs`），unit 分片 **5869/5870 通过**（唯一失败 = `branding`）——两个失败同一根因（runner 无 `rg`，§5.1）；**前两轮的全部修复已在 Linux 上通过**。
 
+### CI 第二轮结果（head `53500b1`，修复 rg 后）
+
+| Workflow | 结论 | Run URL | 备注 |
+| --- | --- | --- | --- |
+| ci | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38202330049 | **cercas ✅ / typecheck ✅ / lint ✅ / unit parte 2/2 ✅**；新暴露下游两处（§5.5）：`Channel provider leak` ❌ 与 `Kit self-host (bash)` ❌ |
+| e2e | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38202330082 | 与首轮同类（红 + 预算） |
+| perf | ✅ success | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38202330044 | |
+| publish-image | ❌ failure | https://github.com/Tong-bit-art/pi-native-crm/actions/runs/38202330054 | 同 §5.2 的 tag 不匹配 |
+
+- 通过 `--failed` 定向重跑确认两处红为**确定性**（同步骤、同断言、同 SHA）。
+- **步骤级事实（重要）**：`verify-parte (1)` 在 `lint:channels` 失败后，其后的 Role rank / Colisão de migration / 主树检查 / **Unit parte 1/2** / `.changes` / Kit **全部被 skip**——这些步骤在修复前**从未在 CI 上运行过**；`verify-parte (2)` 走到了 unit 2/2 ✅ 与 Kit ❌。下一轮 CI 将首次真正测量被 skip 的步骤。
+
 ## 5. 任务 05：CI 残余失败最小复现与修复
 
 ### 5.1 已修：两个 `rg` 依赖（跨平台根因）
@@ -125,16 +137,33 @@
 
 - 负载/hook 敏感组（`pi-runtime-architecture`、`pr-mexe-na-imagem`、`sem-marcador-de-conflito`、`lib/theme.test.tsx`、`create-or-move-lead`）：本机全量下曾超时（含全局 afterEach 10s）；受控 `--maxWorkers=1` 复跑记录在案；**Linux CI 全部通过**。未统一加超时、未加自动重试、未跳过任何失败。
 
+### 5.5 二轮 CI 揭示的两处（已修，均先红后绿）
+
+**a) `lint:channels` — 注释里出现 provider 名　`929b0fa`**
+
+- CI：`verify-parte (1)` 在 `Channel provider leak` 步骤失败；唯一违规 = `lib/agent-runtime/pi/model-adapter.test.ts` 第 10 行——这是 02 里我写的注释，引用了含 provider 名的测试文件路径（`tests/unit/canal-…-base-url-vazia.test.ts`）。
+- 本机复现：`pnpm lint:channels` exit 1，同一行。该棘轮**故意不区分注释与代码**（脚本自己的说明：分离会产生别类的假阴性）。
+- 修复：注释改指"测试 irmão（文件名后缀 `-base-url-vazia.test.ts`）"，不写 provider 名。
+- 验证：修复后 `pnpm lint:channels` = exit 0（"62 arquivos de dívida conhecida, nenhum novo"）。
+
+**b) `colisao-de-migration` — 测试继承了 runner 的 `GITHUB_REF`　`96228e3`**
+
+- CI：`Kit self-host (bash)` 里 `colisao-de-migration: 1 de 102 casos vermelhos`；唯一失败断言 = 用例 18 的 `NÃO MEDIDO: #8`。
+- 根因：gate 用 `${GITHUB_REF:-}`（`refs/pull/N/merge`）把"自己的 PR"剔出开放列表；测试脚本控制了所有输入（fake gh、夹具 PR 7/8/9/11）却**没有中和这一环境变量**——CI 上 `GITHUB_REF=refs/pull/8/merge`（正是本 PR！）使 #8 被当作"自己的 PR"剔除。卖家 CI 的 PR 编号在 1300+，从未撞上夹具号码，所以该泄漏从未被发现。
+- 复现（本机）：`GITHUB_REF=refs/pull/8/merge bash tests/shell/colisao-de-migration.test.sh` → `1 de 102`（与 CI 同一断言）。
+- 修复：隔离区 `unset GITHUB_REF`（含测量注释）。其余 shell 测试不读 `GITHUB_*`。
+- 验证：修复后带/不带该变量均 **102/102**。
+
 ## 6. 与验收对照
 
-- 任务 01–03 断言未弱化；样本与根依赖约束未变（本轮提交未改 `package.json`/`pnpm-lock.yaml`/overrides，仅合并 main 既有 bump）。
+- 任务 01–03 断言未弱化；末段两处修复（§5.5）同样先红后绿，未弱化任何断言；样本与根依赖约束未变（本轮提交未改 `package.json`/`pnpm-lock.yaml`/overrides，仅合并 main 既有 bump）。
 - 工作区无临时违规、无真实配置残留（探针均清理；`tests/fixtures/agent-projection` 为已审查样本）。
 - Draft PR 与真实 run URL：§4；runner/权限问题未发生（托管 runner 启动正常）。
 - 整体状态：**未宣称整体通过**——ci 的 invariants 全绿、cercas/unit 各剩一处已修（待下一轮 CI 复验）；e2e 与镜像两项确认缺陷待裁决。
 
 ## 7. 需要 Codex 决策 / 下一步
 
-1. **下轮推送后复验**：rg 修复已提交，将随文档提交一起推送；预期 ci 的 verify 首次全绿（仅 vigia/relogio 处于禁用是预期状态）。
+1. **下轮复验**：`929b0fa` + `96228e3` 推送后，第三轮 CI 将**首次**执行此前被 skip 的步骤（Unit 1/2、Role rank、Colisão de migration、主树检查、`.changes` 屏幕预算、Kit）；任何新红都会如实回报，不预设全绿。
 2. **publish-image tag 不匹配**（§5.2）：是否按最小提案修两行（packaging 域）。
 3. **e2e**（§5.3）：红色 spec 列表的处置（产品对照 vs 分片预算调整）不在本轮范围，请裁决下一轮范围。
 4. **负载/hook 组**：Linux CI 全绿 + 本机受控记录在案 → 建议按"Windows 平台/负载类"归档，不再列为待复现产品问题。
