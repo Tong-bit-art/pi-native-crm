@@ -574,6 +574,9 @@ test("quem não é dono do servidor não vê o botão", async ({ page, request }
   await expect(page.getByRole("link", { name: /nova versão/i })).toHaveCount(0);
 
   await page.goto("/app/settings/atualizacao");
-  await expect(page.getByText(/404 — Página não encontrada/i)).toBeVisible();
+  // Sem ser dono, a rota responde a página de não-encontrado — que resolve o
+  // idioma padrão da instalação (a conta de teste não tem locale próprio):
+  // `zh-CN`, como as demais páginas anônimas de erro.
+  await expect(page.getByRole("heading", { name: "404 — 页面未找到", exact: true })).toBeVisible();
   await page.screenshot({ path: ".superpowers/evidence/task9-4-nao-dono-404.png" });
 });
