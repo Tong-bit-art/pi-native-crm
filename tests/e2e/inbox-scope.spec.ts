@@ -14,7 +14,7 @@ import { createClient } from "@supabase/supabase-js";
 import { test, expect, type Page } from "@playwright/test";
 
 import { credenciaisSupabaseDeTeste } from "../../scripts/lib/env-de-teste";
-import { isAppUrl } from "./utils/app-url";
+import { waitForAppEntry } from "./utils/app-url";
 
 interface E2ECreds {
   password: string;
@@ -30,7 +30,7 @@ async function login(page: Page, email: string): Promise<void> {
   await page.locator("#email").fill(email);
   await page.locator("#password").fill(creds.password);
   await page.getByRole("button", { name: /entrar/i }).click();
-  await page.waitForURL(isAppUrl);
+  await waitForAppEntry(page);
 }
 
 /**
