@@ -120,7 +120,9 @@ describe("a classe inteira: ausência de medição não vira zero nos caminhos d
     for (const entrada of readdirSync(raiz, { withFileTypes: true, recursive: true })) {
       if (!entrada.isFile()) continue;
       if (!/\.(ts|tsx)$/.test(entrada.name) || /\.test\.tsx?$/.test(entrada.name)) continue;
-      achados.push(path.join(entrada.parentPath ?? raiz, entrada.name));
+      // `\` no Windows não casa com as comparações em `/` desta casa; a
+      // fronteira do scanner normaliza uma vez (mesma régua do runtime).
+      achados.push(path.join(entrada.parentPath ?? raiz, entrada.name).split(path.sep).join("/"));
     }
     return achados;
   }
@@ -143,7 +145,9 @@ describe("a classe inteira: ausência de medição não vira zero nos caminhos d
       const linhas = readFileSync(arquivo, "utf8").split("\n");
       linhas.forEach((linha, i) => {
         if (!ehComentario(linha) && VOCABULARIO.test(linha) && INVENTA_ZERO.test(linha)) {
-          infratores.push(`${path.relative(process.cwd(), arquivo)}:${i + 1}  ${linha.trim()}`);
+          infratores.push(
+            `${path.relative(process.cwd(), arquivo).split(path.sep).join("/")}:${i + 1}  ${linha.trim()}`,
+          );
         }
       });
     }

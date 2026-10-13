@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = process.cwd();
@@ -8,7 +8,9 @@ function sourceFilesIn(directory: string): string[] {
     if (entry.name === "node_modules" || entry.name === ".next" || entry.name === ".git") return [];
     const path = join(directory, entry.name);
     if (entry.isDirectory()) return sourceFilesIn(path);
-    return /\.tsx?$/.test(entry.name) ? [path.slice(ROOT.length + 1)] : [];
+    // Windows: `join` devolve `\`, e as regras abaixo comparam com `/`.
+    // A fronteira do scanner normaliza uma vez; ninguém compara fora daqui.
+    return /\.tsx?$/.test(entry.name) ? [path.slice(ROOT.length + 1).split(sep).join("/")] : [];
   });
 }
 

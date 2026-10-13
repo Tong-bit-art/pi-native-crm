@@ -195,12 +195,34 @@ __pycache__/
 # — Buyer's note: seller-internal material is intentionally NOT published from
 # this copy of the repository (it lives locally in a sibling backup folder).
 # Anchored at the root so no nested path with these names is affected.
+# EXCEÇÃO: loop/hooks/ são as guardas de commit do mantenedor — versionadas
+# publicamente no repositório upstream do autor e o sujeito dos testes de
+# tests/shell/ — então entram; o resto de loop/ (checkpoints, INBOX, docs do
+# loop interno) continua fora.
+# EXCEÇÃO: experiments/extensoes/catalog/ é o catálogo de ensaio que as specs
+# de extensões EXECUTAM (python3 catalog.py init/serve) — versionado
+# publicamente no repositório upstream do autor; o resto de experiments/ segue
+# fora, como o resto desta seção.
 /evidence/
-/loop/
+/loop/*
+!/loop/hooks/
 /plan/
 /tasks/
 /triagem/
-/experiments/
+/experiments/*
+!/experiments/extensoes/catalog/
 /.specs/
-/.codex/
-/.cursor/
+
+# Local tool settings stay local; only the reviewed contributor doors ship.
+# Same allow-by-file shape the repo already uses for .claude (see above).
+/.codex/*
+!/.codex/hooks.json
+/.cursor/*
+!/.cursor/rules/
+/.cursor/rules/*
+!/.cursor/rules/pi-native-guias.mdc
+
+# The standalone example tracks its own npm lockfile so a clean checkout can
+# `npm ci`. The root project keeps pnpm@9.15.9 + pnpm-lock.yaml as the single
+# source (see the lockfile note above).
+!/examples/chat-first-demo/package-lock.json

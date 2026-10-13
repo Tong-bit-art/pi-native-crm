@@ -30,7 +30,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const post = vi.fn((..._a: unknown[]) => Promise.resolve({ data: {} }));
 /** O que a tela já tem cadastrado — o lote confere duplicata contra isto. */
@@ -63,9 +63,29 @@ function corpoEnviado(): Record<string, unknown> {
 }
 
 describe("Dias fora da rotina — fechar e abrir", () => {
+  /**
+   * O rótulo da lista formata com `toLocaleDateString()` SEM locale explícito:
+   * o texto depende do locale do processo (nesta máquina, zh-CN → "2026/10/8"),
+   * e a asserção do caso de deduplicação espera uma data legível estável.
+   * Fixamos o locale DO TESTE com um spy que continua formatando a data REAL —
+   * nada de Date mockado devolvendo constante, nada de regex que aceite
+   * qualquer data; pt-BR rende "08/10/2026", o formato que a asserção já
+   * cobra. Restaurado no afterEach; os demais casos não dependem disto.
+   */
+  let localeSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     post.mockClear();
     jaCadastrado = [];
+    localeSpy = vi.spyOn(Date.prototype, "toLocaleDateString").mockImplementation(function (
+      this: Date,
+    ) {
+      return new Intl.DateTimeFormat("pt-BR").format(this);
+    });
+  });
+
+  afterEach(() => {
+    localeSpy.mockRestore();
   });
 
   it("fechar continua mandando o dia INTEIRO", async () => {

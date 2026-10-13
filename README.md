@@ -4,7 +4,7 @@
 
 让 Agent 读取客户与商机，消费知识和记忆，调用工具推进业务；让人看清它做了什么、依据什么，以及 CRM 发生了哪些变化。
 
-[架构说明](docs/architecture/README.md) · [服务接入](docs/integrations/agent-services.md) · [开发配置](docs/SETUP.md) · [验证记录](docs/testing/system-acceptance-fixes-2026-10-03.md)
+[English](README.en.md) · [架构说明](docs/architecture/README.md) · [服务接入](docs/integrations/agent-services.md) · [开发配置](docs/SETUP.md) · [来源说明](ORIGIN.md)
 
 > CRM 保存业务事实，Pi 驱动 Agent 行动，Harness 管理执行边界。
 
@@ -104,23 +104,47 @@ CRM 产品层通过自有接口调用运行内核；Pi 类型封装在适配层�
 
 ## 快速开始
 
-### 本地开发
+三条路径，按投入从小到大：
+
+### ① 无密钥静态预览（约 1 分钟，不需要任何密钥）
+
+```bash
+git clone https://github.com/Tong-bit-art/pi-native-crm.git
+cd pi-native-crm
+node scripts/serve-agent-demo.mjs
+```
+
+打开 [演示工作台](http://127.0.0.1:3008/#/app/ai/workbench)。这是**静态合成演示**：虚构 CRM 场景与脱敏的历史真实模型录制回放；“真实模型录制”只做回放，不重新发起模型请求，也不启动 Next.js、Supabase 或 worker；页面与真实后端完全独立。
+
+![演示首屏](docs/media/onboarding/demo-workbench.png)
+
+### ② 真实本地后端（开发环境，完整配置约 60–90 分钟）
 
 准备 Node.js 22+、pnpm，以及开发用 Supabase 和 Redis 配置。
 
 ```bash
 git clone https://github.com/Tong-bit-art/pi-native-crm.git
-cd AiNativeCrm
+cd pi-native-crm
 pnpm install --frozen-lockfile
+```
 
-# 仅在配置文件不存在时创建，保留已有配置
+创建本地配置文件（仅在文件不存在时创建，保留已有配置）：
+
+macOS / Linux：
+
+```bash
 test -e .env.local || cp .env.example .env.local
 test -e .env || touch .env
 ```
 
-按照 [开发配置指南](docs/SETUP.md)填写 Supabase、Redis、应用地址及服务端加密配置；新开发数据库按指南初始化。已有数据库按迁移流程更新。
+Windows PowerShell：
 
-在不同终端中启动：
+```powershell
+if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
+if (-not (Test-Path .env)) { New-Item .env | Out-Null }
+```
+
+按 [开发配置指南](docs/SETUP.md)（葡语）填写 Supabase、Redis、应用地址及服务端加密配置；新数据库按指南初始化，已有数据库按迁移流程更新。在不同终端中启动：
 
 ```bash
 # Web
@@ -135,15 +159,13 @@ pnpm dev:crons
 
 打开 [本地工作台](http://localhost:3000/app/ai/workbench)，登录后在组织模型配置页绑定真实模型凭据，选择内置 Agent、CRM 对象和任务开始运行。
 
-Mem0、WeKnora 与 Langfuse 的本地服务部署和组织绑定，见 [本地服务指南](infra/local-agent-services/README.md)与[接入契约](docs/integrations/agent-services.md)。
+注意：以上为项目自带的配置说明；本分支**尚未复验完整实时链路**（Supabase/Redis、真实模型调用、审批与撤销、回放与评测），已验范围与待办见[第二轮报告](docs/testing/2026-10-11-community-onboarding-round2.md)。
 
-### 演示与真实运行回放
+Mem0、WeKnora 与 Langfuse 是**可选**的第三方服务：核心工作台不依赖它们，按组织绑定启用，见 [本地服务指南](infra/local-agent-services/README.md)与[接入契约](docs/integrations/agent-services.md)。
 
-```bash
-node scripts/serve-agent-demo.mjs
-```
+### ③ 生产自托管（状态：本分支尚未完成独立发布链路）
 
-打开 [演示工作台](http://127.0.0.1:3008/#/app/ai/workbench)。演示包含合成 CRM 场景与脱敏的真实模型录制；“真实模型录制”展示历史输入输出、工具调用、记忆、知识引用与评测，不重新发起模型请求。演示页面与真实后端独立运行。
+仓库内的 `hostgator-setup-kit/` 与 `docs/deploy-selfhost/` 来自原项目快照，默认指向原发布渠道（镜像与仓库地址均为上游）。本分支自己的镜像、版本与安装链路仍在建设，**不要把本分支当作“开箱即生产”**；链路进展与证据见[本轮验证报告](docs/testing/2026-10-11-community-onboarding.md)。
 
 ### 常用命令
 
@@ -164,11 +186,19 @@ node scripts/serve-agent-demo.mjs
 
 ## 项目状态
 
-当前为内部研发版本，主分支围绕 Agent 工作台、受控 CRM 工具、多 Agent 协作、商机 Mission、知识记忆和 Eval 持续迭代。
+本仓库是 Pi Native CRM（MIT）的**快照导入分支**，来源与分支状态见 [ORIGIN.md](ORIGIN.md)。主分支围绕 Agent 工作台、受控 CRM 工具、多 Agent 协作、商机 Mission、知识记忆和 Eval 持续迭代。
 
-- **真实运行记录**：已沉淀真实模型、多 Agent、Mem0 / WeKnora / Langfuse 联调与脱敏回放。[查看运行记录](docs/testing/agent-services-real-run-2026-10-03.md) · [查看三服务联调](docs/testing/local-agent-services-connected-2026-10-03.md)
-- **系统复验记录**：2026-10-03 完成单元测试、数据库不变量、关键浏览器场景及真实模型复验。[查看复验报告](docs/testing/system-acceptance-fixes-2026-10-03.md)
-- **工程复核记录**：2026-10-05 类型检查、lint、构建与全量单测通过，单测 1,324 个文件、12,958 项通过。[查看工程复核](docs/testing/repository-hygiene-2026-10-05.md)
+**历史记录（原项目快照时期、原作者环境所测；不代表本分支今天的验证状态）：**
+
+- **真实运行记录**（2026-10-03）：真实模型、多 Agent、Mem0 / WeKnora / Langfuse 联调与脱敏回放。[查看运行记录](docs/testing/agent-services-real-run-2026-10-03.md) · [查看三服务联调](docs/testing/local-agent-services-connected-2026-10-03.md)
+- **系统复验记录**（2026-10-03）：单元测试、数据库不变量、关键浏览器场景及真实模型复验。[查看复验报告](docs/testing/system-acceptance-fixes-2026-10-03.md)
+- **工程复核记录**（2026-10-05，原项目全量环境）：类型检查、lint、构建与全量单测通过，单测 1,324 个文件、12,958 项通过。[查看工程复核](docs/testing/repository-hygiene-2026-10-05.md)
+
+**本分支记录：**
+
+- **2026-10-11 社区入门轮次**：干净克隆安装（Node 22 / pnpm 9.15.9）、Windows 架构检查路径修复、公开入口与来源说明整理。[查看本轮报告](docs/testing/2026-10-11-community-onboarding.md)
+- **2026-10-11 第二轮（可复现测试与准确说明）**：脱敏回归样本、来源 URL 例外、演示锁文件与本地工具允许列表、四组跨平台路径扫描修复、英文首页与报告措辞校准。[查看第二轮报告](docs/testing/2026-10-11-community-onboarding-round2.md)
+- **2026-10-11 第三轮（确定性测试与真实 CI）**：来源 URL 完整边界矩阵、测试 `.env` 解析与模型环境隔离、日期测试 locale 固定；启用验证 CI 并推送审查分支（[Draft PR #8](https://github.com/Tong-bit-art/pi-native-crm/pull/8)），真实 run 结果见报告。[查看第三轮报告](docs/testing/2026-10-11-community-onboarding-round3.md)
 
 执行记录用于证明实际链路，业务结果由证据与验收条件核验；详细测量范围保存在对应报告中。
 
@@ -192,11 +222,16 @@ node scripts/serve-agent-demo.mjs
 ## 文档
 
 - [文档入口](docs/index.md)
+- [来源与分支状态](ORIGIN.md) · [English README](README.en.md) · [英文贡献入口](CONTRIBUTING.en.md)
 - [Agent 架构](docs/architecture/README.md)
 - [商机 Mission 与执行状态](docs/architecture/mission-state.md)
 - [飞书内部协作接口](docs/architecture/internal-collaboration-feishu.md)
 - [Memory、Wiki 与 Langfuse 接入](docs/integrations/agent-services.md)
 - [本地服务启动与联调](infra/local-agent-services/README.md)
 - [专项 E2E 测试入口](tests/e2e/configs/README.md)
+
+### 内置助理指南（Skills）
+
+任务指南随仓库分发：`.agents/skills/` 由 Codex、Cursor、OpenCode 与 Antigravity 读取，`.claude/skills/` 是 Claude Code 读取的镜像。按名调用：Claude Code、Cursor 与 Antigravity 用 `/pi-native-instalar`；Codex 用 `$pi-native-instalar`；OpenCode 直接说"使用 pi-native-instalar 指南"。把指南装进本机各 CLI：`bash scripts/instalar-guias.sh`。
 
 内部开发先阅读 [AGENTS.md](AGENTS.md)与[CLAUDE.md](CLAUDE.md)。本项目包含继承代码，遵循 [MIT 许可及原版权声明](LICENSE)。

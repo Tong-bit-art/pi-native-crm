@@ -15,26 +15,28 @@ import type { LeadContext } from "@/lib/agent-engine/edge/crm/get-lead-context";
 /**
  * A projeção (spec 16 §4) — a camada que fecha a TERCEIRA porta de vazamento.
  *
- * ═══ POR QUE ESTE ARQUIVO LÊ `evidence/` ═══
+ * ═══ POR QUE ESTE ARQUIVO LÊ `tests/fixtures/agent-projection/` ═══
  *
- * Os payloads abaixo não foram inventados por quem escreveu o teste: são os
- * turnos REAIS de `gpt-5.6-terra` da medição de 2026-08-05, versionados em
- * `evidence/ia-360-w4/medicao-vazamento/turnos/`. Fixture inventada mede a
- * imaginação de quem a escreveu — e a imaginação de quem escreve a defesa é
- * justamente a que já falhou, senão o defeito não teria acontecido.
+ * Os payloads abaixo não foram inventados por quem escreveu o teste: são uma
+ * extração mínima e desidentificada de turnos REAIS de `gpt-5.6-terra` medidos
+ * em 2026-08-05 (medição de vazamento do projeto original). Fixture inventada
+ * mede a imaginação de quem a escreveu — e a imaginação de quem escreve a
+ * defesa é justamente a que já falhou, senão o defeito não teria acontecido.
+ *
+ * A extração preserva o que as asserções medem (o erro cru `unsafe_url` e
+ * identificadores com forma de UUID) e substitui todo identificador real por
+ * UUID fictício fixo; o conteúdo e os cortes estão documentados no README da
+ * pasta. Não é uma nova medição deste branch: nenhum modelo foi chamado para
+ * produzi-la.
  *
  * Se os arquivos sumirem, os casos que dependem deles FALHAM em vez de sumirem
  * em silêncio (ver `carregarTurno`): um teste que se auto-desliga quando perde o
  * insumo é pior que teste nenhum, porque continua reportando verde.
  */
-const DIR_TURNOS = path.join(
-  process.cwd(),
-  "evidence/ia-360-w4/medicao-vazamento/turnos",
-);
+const DIR_TURNOS = path.join(process.cwd(), "tests/fixtures/agent-projection");
 
 interface TurnoMedido {
   cenario: string;
-  final_text: string;
   tool_calls: Array<{ tool_calls?: Array<{ tool_name: string; result: unknown }> }>;
 }
 
@@ -42,8 +44,8 @@ function carregarTurno(arquivo: string): TurnoMedido {
   const caminho = path.join(DIR_TURNOS, arquivo);
   if (!fs.existsSync(caminho)) {
     throw new Error(
-      `evidência ausente: ${caminho}. Estes casos medem a projeção contra turnos REAIS; ` +
-        `sem o arquivo o teste não tem o que medir e deve falhar, não passar.`,
+      `amostra ausente: ${caminho}. Estes casos medem a projeção contra a amostra ` +
+        `histórica desidratada; sem o arquivo o teste não tem o que medir e deve falhar, não passar.`,
     );
   }
   return JSON.parse(fs.readFileSync(caminho, "utf-8")) as TurnoMedido;
@@ -223,10 +225,10 @@ describe("projeção — o que o Conversador pode ver", () => {
     });
   });
 
-  describe("contra os turnos REAIS que vazaram (evidence/)", () => {
+  describe("contra a amostra histórica desidratada (turnos que vazaram)", () => {
     it("o payload que produziu 'unsafe_url:https_required' sai limpo depois da projeção", () => {
       const turno = carregarTurno("operador__7-automacoes-e-falhas.json");
-      // Primeiro: a evidência é o que eu penso que é. Sem este controle, um
+      // Primeiro: a amostra é o que eu penso que é. Sem este controle, um
       // arquivo trocado faria o caso passar sem medir nada.
       const cruJson = JSON.stringify(resultadosDeFerramenta(turno));
       expect(cruJson, "controle: o payload real deve conter o erro cru").toContain("unsafe_url:https_required");

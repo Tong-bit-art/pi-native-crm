@@ -51,7 +51,7 @@
  *     explicitamente, com `?? null`.
  */
 import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -424,7 +424,9 @@ describe("nenhum chamador de produção decide a publicada pelo palpite", () => 
         p !== "lib/ai/agents/versoes-da-tela.ts" &&
         readFileSync(join(raiz, p), "utf8").includes("escolherVersoesDaTela("),
     )
-    .map((p) => relative(".", p));
+    // `/` antes de entrar no `toContain` do controle positivo — no Windows o
+    // `relative` devolveria `\` e a sonda pareceria cega.
+    .map((p) => relative(".", p).split(sep).join("/"));
 
   it("a sonda enxerga alguma coisa (controle positivo)", () => {
     // Sem isto, uma varredura que devolvesse zero arquivo — pasta renomeada,

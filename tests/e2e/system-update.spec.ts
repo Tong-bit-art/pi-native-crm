@@ -39,6 +39,7 @@ import * as path from "node:path";
 import { test, expect, type Page, type APIRequestContext } from "@playwright/test";
 
 import { generateTotp, msUntilNextTotpWindow } from "./utils/totp";
+import { waitForAppEntry } from "./utils/app-url";
 
 const CREDS_PATH = path.join(process.cwd(), ".e2e-creds.json");
 const SECRET = process.env.INTERNAL_SECRET ?? "";
@@ -83,7 +84,7 @@ async function login(page: Page, email: string): Promise<void> {
   await page.locator("#email").fill(email);
   await page.locator("#password").fill(creds.password);
   await page.getByRole("button", { name: /entrar/i }).click();
-  await page.waitForURL(/\/app\//);
+  await waitForAppEntry(page);
 }
 
 async function loginWithTotp(page: Page, email: string, secret: string): Promise<void> {
@@ -103,7 +104,7 @@ async function loginWithTotp(page: Page, email: string, secret: string): Promise
     await firstDigit.click();
     await page.keyboard.type(code, { delay: 40 });
     try {
-      await page.waitForURL(/\/app\//, { timeout: 8_000 });
+      await waitForAppEntry(page, { timeout: 8_000 });
       return;
     } catch {
       // código rejeitado — espera a próxima janela e tenta de novo
@@ -573,6 +574,9 @@ test("quem não é dono do servidor não vê o botão", async ({ page, request }
   await expect(page.getByRole("link", { name: /nova versão/i })).toHaveCount(0);
 
   await page.goto("/app/settings/atualizacao");
-  await expect(page.getByText(/404 — Página não encontrada/i)).toBeVisible();
+  // Sem ser dono, a rota responde a página de não-encontrado — que resolve o
+  // idioma padrão da instalação (a conta de teste não tem locale próprio):
+  // `zh-CN`, como as demais páginas anônimas de erro.
+  await expect(page.getByRole("heading", { name: "404 — 页面未找到", exact: true })).toBeVisible();
   await page.screenshot({ path: ".superpowers/evidence/task9-4-nao-dono-404.png" });
 });

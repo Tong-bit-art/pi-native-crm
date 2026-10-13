@@ -2,39 +2,22 @@ import { readFileSync } from "node:fs";
 import { File as NodeFile } from "node:buffer";
 import { resolve } from "node:path";
 
-/**
- * Remove um par de aspas (simples ou duplas) que envolva o valor inteiro —
- * mesma convenção que `hostgator-setup-kit/install.sh` grava no `.env` de
- * TODA instalação self-host (`NEXT_PUBLIC_APP_URL="https://${DOMAIN}"`).
- * Sem isto, um self-hoster que rode `pnpm test:unit` na própria VPS antes de
- * atualizar vê a suíte inteira falhar com "Variáveis de ambiente inválidas"
- * (a URL vira `"https://…"` — aspas incluídas — e falha a validação Zod de
- * `lib/env.ts`), mesmo com o `.env` real e correto. `.env.example` (o
- * convívio local, sem instalador) não usa aspas — por isso o bug nunca
- * apareceu em desenvolvimento, só em VPS instalada pelo kit.
- */
-function stripQuotes(value: string): string {
-  if (value.length >= 2) {
-    const first = value[0];
-    const last = value[value.length - 1];
-    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
-      return value.slice(1, -1);
-    }
-  }
-  return value;
-}
+import { parseTestEnv } from "./parse-test-env";
 
 // Load .env and .env.local before importing any app code that validates env vars
+//
+// A leitura mora em `./parse-test-env` desde a rodada 3: o parser anterior
+// (split em `=`) tratava o comentário de fim de linha do `.env.example` como
+// VALOR — um teste de unidade mediu `OPENROUTER_BASE_URL` valendo o texto do
+// comentário. O módulo novo preserva as regras de precedência daqui: arquivo
+// por arquivo nesta ordem, e o que já está no processo vence.
 for (const envFile of [".env", ".env.local"]) {
   try {
     const path = resolve(process.cwd(), envFile);
     const content = readFileSync(path, "utf-8");
-    for (const line of content.split("\n")) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const [key, ...rest] = trimmed.split("=");
+    for (const [key, value] of Object.entries(parseTestEnv(content))) {
       if (key && !process.env[key]) {
-        process.env[key] = stripQuotes(rest.join("=").trim());
+        process.env[key] = value;
       }
     }
   } catch {

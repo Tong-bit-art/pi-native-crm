@@ -57,6 +57,90 @@ describe("resolveBranding", () => {
 });
 
 describe("guarda de namespace removido", () => {
+  /**
+   * A ÚNICA exceção sancionada: a URL canônica COMPLETA, só em `ORIGIN.md`.
+   *
+   * `ORIGIN.md` precisa apontar o upstream público atual para um estranho poder
+   * conferir a linhagem — e a URL carrega o termo removido. A exceção é UM token
+   * exato: a URL inteira, com as DUAS fronteiras (a primeira versão só checava a
+   * direita e perdoava a URL embutida em outra URL — medido na revisão da rodada
+   * 2), só no `ORIGIN.md`, e nada além dela — endereço estendido
+   * (path/query/fragmento) e a mesma URL em outro arquivo continuam reprovando.
+   * O termo é construído em partes para este próprio arquivo não casar a
+   * varredura que ele roda. A matriz permanente logo abaixo é a régua da exceção.
+   */
+  const URL_CANONICA = ["https://github.com/melgarafael/", "Desk", "commCRM"].join("");
+  // Fronteira ESQUERDA: os caracteres em que a URL deixa de ser um token inteiro
+  // — prefixo de outra URL (`/`), valor de query (`=`), fragmento (`#`), emenda
+  // em palavra (`x`), rótulo (`:`). Ficam de fora, de propósito, os
+  // delimitadores de texto (espaço, `<` `>` `(` `)` `[` `]`, crases e aspas):
+  // são as formas em que um endereço aparece citado como ele mesmo.
+  const FRONTEIRA_ESQUERDA = "(?<![A-Za-z0-9._~:/?#@!$&+,;=%-])";
+  const FRONTEIRA_DIREITA = "(?![A-Za-z0-9._/?#&=%+~-])";
+  const RE_URL_CANONICA = new RegExp(
+    FRONTEIRA_ESQUERDA + URL_CANONICA.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + FRONTEIRA_DIREITA,
+    "g",
+  );
+
+  /**
+   * O conteúdo de uma linha de `git grep` do `ORIGIN.md` sem a exceção.
+   *
+   * O prefixo `ORIGIN.md:<linha>:` sai ANTES da substituição: o `:` do prefixo
+   * não pode contar como fronteira esquerda (nem concedendo a exceção a uma URL
+   * no início do conteúdo, nem negando uma sancionada). Linha de qualquer outro
+   * arquivo volta intacta — a exceção não alcança outro path.
+   */
+  function semExcecaoDeOrigem(linha: string): string {
+    const conteudo = /^ORIGIN\.md:\d+:(.*)$/.exec(linha);
+    if (conteudo === null) return linha;
+    return conteudo[1]!.replace(RE_URL_CANONICA, "");
+  }
+
+  /**
+   * A MATRIZ PERMANENTE da exceção — forma sancionada remove; forma proibida
+   * permanece para o scan acusar. A revisão da rodada 2 mediu que a primeira
+   * versão só olhava a fronteira DIREITA e perdoava a URL embutida em outra URL
+   * (`https://exemplo.invalid/<canonica>`); estes casos fixam as duas fronteiras
+   * no repositório, e não só numa sessão de verificação.
+   */
+  const TERMO = ["Desk", "commCRM"].join("");
+  const linhaDeOrigem = (conteudo: string): string => `ORIGIN.md:12:${conteudo}`;
+  const contemTermo = (texto: string): boolean =>
+    texto.toLowerCase().includes(TERMO.toLowerCase());
+
+  it.each([
+    ["dentro de <...> (a forma do ORIGIN.md)", `- **Current public upstream:** <${URL_CANONICA}> — ok`],
+    ["dentro de link Markdown", `veja [o upstream](${URL_CANONICA}) para o histórico`],
+    ["sozinha entre espaços", `antes ${URL_CANONICA} depois`],
+    ["no começo do conteúdo", `${URL_CANONICA} encabeça a linha`],
+    ["entre aspas", `o endereço "${URL_CANONICA}" canônico`],
+    ["em crases", "o endereço `" + URL_CANONICA + "` canônico"],
+  ])("remove a ocorrência sancionada — %s", (_rotulo, conteudo) => {
+    const resultado = semExcecaoDeOrigem(linhaDeOrigem(conteudo));
+    expect(contemTermo(resultado), "a exceção não cobriu uma forma sancionada").toBe(false);
+  });
+
+  it.each([
+    ["como caminho de outra URL", `https://exemplo.invalid/${URL_CANONICA}`],
+    ["como valor de query", `https://exemplo.invalid/?next=${URL_CANONICA}`],
+    ["como fragmento de outra URL", `https://exemplo.invalid/#${URL_CANONICA}`],
+    ["colada num prefixo", `rotulo:${URL_CANONICA}`],
+    ["colada num sufixo", `${URL_CANONICA}sufixo`],
+    ["com sufixo de caminho", `${URL_CANONICA}/extra`],
+    ["com query", `${URL_CANONICA}?pagina=2`],
+    ["com fragmento", `${URL_CANONICA}#topo`],
+    ["de outro domínio", `https://github.com/outra-conta/${TERMO}`],
+    ["como termo nu", `texto com ${TERMO} solto`],
+  ])("NÃO remove — %s", (_rotulo, conteudo) => {
+    const resultado = semExcecaoDeOrigem(linhaDeOrigem(conteudo));
+    expect(contemTermo(resultado), "uma forma proibida foi perdoada pela exceção").toBe(true);
+  });
+
+  it("a mesma URL em OUTRO arquivo não é exceção", () => {
+    const resultado = semExcecaoDeOrigem(`README.md:1:texto <${URL_CANONICA}> aqui`);
+    expect(contemTermo(resultado)).toBe(true);
+  });
+
   it("não deixa a marca anterior voltar para texto ou nomes de arquivo", () => {
     const ocorrencias = nomesLegados().flatMap((termo) => {
       try {
@@ -66,7 +150,13 @@ describe("guarda de namespace removido", () => {
         })
           .trim()
           .split("\n")
-          .filter(Boolean);
+          .filter(Boolean)
+          .filter((linha) => {
+            // Reconfere depois de remover a exceção: o que sobrar ainda casando
+            // o termo é violação — exceção de um token não vira passe livre.
+            const semExcecao = semExcecaoDeOrigem(linha);
+            return semExcecao.toLowerCase().includes(termo.toLowerCase());
+          });
       } catch (error) {
         if ((error as { status?: number }).status === 1) return [];
         throw error;
@@ -74,9 +164,12 @@ describe("guarda de namespace removido", () => {
     });
 
     const nomeLegado = new RegExp(["desk", "comm"].join(""), "i");
-    const nomes = execFileSync("rg", ["--files"], { cwd: RAIZ, encoding: "utf8" })
-      .trim()
-      .split("\n")
+    // `git ls-files -z` no lugar de `rg --files`: o runner do CI NÃO tem
+    // ripgrep instalado (medido: spawnSync rg ENOENT no verify do PR #8), e o
+    // alvo da guarda são os NOMES RASTREADOS — git existe em qualquer checkout.
+    const nomes = execFileSync("git", ["ls-files", "-z"], { cwd: RAIZ, encoding: "utf8" })
+      .split("\0")
+      .filter(Boolean)
       .filter((nome) => nomeLegado.test(nome));
 
     expect(ocorrencias).toEqual([]);

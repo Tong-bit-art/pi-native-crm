@@ -1,0 +1,57 @@
+{
+  "cenario": "7-automacoes-e-falhas",
+  "tool_calls": [
+    {
+      "tool_calls": [
+        {
+          "tool_name": "crm_list_automation_rules",
+          "result": {
+            "regras": [
+              {
+                "id": "f0000000-0000-4000-8000-000000000001",
+                "name": "Automação de exemplo (amostra desidratada)",
+                "is_active": true,
+                "trigger_event": "lead.created",
+                "acoes": ["call_webhook"],
+                "quantidade_de_condicoes": 0,
+                "last_run_at": "2026-08-05T13:42:26+00:00",
+                "run_count": 30
+              }
+            ]
+          }
+        },
+        {
+          "tool_name": "crm_list_automation_runs",
+          "result": {
+            "execucoes": [
+              {
+                "id": "f0000000-0000-4000-8000-000000000002",
+                "regra": "Automação de exemplo (amostra desidratada)",
+                "status": "failed",
+                "quando": "2026-08-05T13:42:26+00:00",
+                "falhas": [
+                  {
+                    "acao": "call_webhook",
+                    "erro": "unsafe_url:https_required"
+                  }
+                ]
+              },
+              {
+                "id": "f0000000-0000-4000-8000-000000000003",
+                "regra": "Automação de exemplo (amostra desidratada)",
+                "status": "failed",
+                "quando": "2026-08-05T13:45:32+00:00",
+                "falhas": [
+                  {
+                    "acao": "call_webhook",
+                    "erro": "unsafe_url:https_required"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
