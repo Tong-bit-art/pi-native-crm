@@ -199,13 +199,18 @@ __pycache__/
 # publicamente no repositório upstream do autor e o sujeito dos testes de
 # tests/shell/ — então entram; o resto de loop/ (checkpoints, INBOX, docs do
 # loop interno) continua fora.
+# EXCEÇÃO: experiments/extensoes/catalog/ é o catálogo de ensaio que as specs
+# de extensões EXECUTAM (python3 catalog.py init/serve) — versionado
+# publicamente no repositório upstream do autor; o resto de experiments/ segue
+# fora, como o resto desta seção.
 /evidence/
 /loop/*
 !/loop/hooks/
 /plan/
 /tasks/
 /triagem/
-/experiments/
+/experiments/*
+!/experiments/extensoes/catalog/
 /.specs/
 
 # Local tool settings stay local; only the reviewed contributor doors ship.
