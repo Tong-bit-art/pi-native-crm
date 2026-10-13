@@ -195,11 +195,12 @@
 - 任务 01–03 断言未弱化；末段两处修复（§5.5）同样先红后绿，未弱化任何断言；样本与根依赖约束未变（本轮提交未改 `package.json`/`pnpm-lock.yaml`/overrides，仅合并 main 既有 bump）。
 - 工作区无临时违规、无真实配置残留（探针均清理；`tests/fixtures/agent-projection` 为已审查样本）。
 - Draft PR 与真实 run URL：§4；runner/权限问题未发生（托管 runner 启动正常）。
+- **第三轮之后的进展（2026-10-13）**：e2e 共同前置契约（入口 `/app` 严格判定 + 匿名错误页默认语言）修复与完整测量见 [第四轮报告](2026-10-13-community-onboarding-round4.md)；本报告 §4/§5 的测量保持当时的真实口径，不改写。
 - 整体状态：**未宣称整体通过**——ci 的 invariants 全绿、cercas/unit 各剩一处已修（待下一轮 CI 复验）；e2e 与镜像两项确认缺陷待裁决。
 
 ## 7. 需要 Codex 决策 / 下一步
 
-1. **状态（2026-10-12）**：第四轮 CI 后 `verify` / `perf` / `invariants` 全绿（head `8c1907c`）；本报告更新的提交会再触发一轮（docs-only，预期同型）。剩余裁决项见下。
+1. **状态（2026-10-13）**：`verify` / `perf` / `invariants` / 镜像在第三、四轮持续全绿；e2e 已进入"共同前置契约"阶段——part-4 全绿（J1.10/J1.13 走通），剩余红集中在**默认语言契约（zh-CN vs PT 断言）**，逐项分类与下一步提案见 [第四轮报告](2026-10-13-community-onboarding-round4.md)。
 2. **publish-image tag 不匹配**：已修并第六轮实测转绿（§5.2）；同轮暴露的测试漂移（字面量锁定旧 tag）已改为 build==sonda 的不变量并 TDD 验证。
 3. **e2e**（§5.3）：红色 spec 列表的处置（产品对照 vs 分片预算调整）不在本轮范围，请裁决下一轮范围。
 4. **负载/hook 组**：Linux CI 全绿 + 本机受控记录在案 → 建议按"Windows 平台/负载类"归档，不再列为待复现产品问题。
