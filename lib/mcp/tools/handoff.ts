@@ -64,6 +64,12 @@ const inputShape = {
 
 export const crmRequestHumanHandoff: McpToolDefinition<typeof inputShape> = {
   name: "crm_request_human_handoff",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   description:
     "Aciona handoff bot→humano. Marca a conversa como pending, silencia o bot e escolhe o " +
     "destino pelo roteamento G5: atende o target_user_id se elegível agora, senão rodízio " +
