@@ -102,6 +102,12 @@ const tiposShape = {};
 
 export const crmListEventTypes: McpToolDefinition<typeof tiposShape> = {
   name: "crm_list_event_types",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista o que esta organização atende — os tipos de atendimento que dá para marcar, quanto cada " +
     "um dura e como é feito. " +
@@ -276,6 +282,12 @@ function comRessalvaDeAgendaNuncaLida(resultado: unknown): string {
 
 export const crmFindFreeSlots: McpToolDefinition<typeof horariosLivresShape> = {
   name: "crm_find_free_slots",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Mostra os horários livres de um tipo de atendimento, já considerando a jornada de trabalho " +
     "do atendente, folgas, o que ele já tem marcado e a agenda externa dele. " +
@@ -396,6 +408,12 @@ const listarShape = {
 
 export const crmListAppointments: McpToolDefinition<typeof listarShape> = {
   name: "crm_list_appointments",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista os compromissos com HORA MARCADA de um cliente, ou de um dia da equipe, com a " +
     "situação de cada um. Informe pelo menos um recorte: contact_id, lead_id, dia ou " +
@@ -521,6 +539,12 @@ const marcarShape = {
 
 export const crmBookAppointment: McpToolDefinition<typeof marcarShape> = {
   name: "crm_book_appointment",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Marca um compromisso com HORA COMBINADA entre o cliente e um atendente — consulta, sessão, " +
     "visita, reunião. Use quando o cliente ESCOLHEU um horário e vai comparecer: isto reserva o " +
@@ -683,6 +707,12 @@ const consultarEMarcarShape = {
  */
 export const crmFindAndBookAppointment: McpToolDefinition<typeof consultarEMarcarShape> = {
   name: "crm_find_and_book_appointment",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Confere UM horário e, se estiver livre, MARCA na MESMA chamada. Use quando o cliente " +
     "JÁ disse o dia E a hora (\"quinta às 14h\", \"amanhã de manhã às 9\") e esse par ainda não " +
@@ -835,6 +865,12 @@ const remarcarShape = {
 
 export const crmRescheduleAppointment: McpToolDefinition<typeof remarcarShape> = {
   name: "crm_reschedule_appointment",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Move um compromisso já marcado para outro horário, mantendo o mesmo cliente e o mesmo tipo. " +
     "Use quando o cliente pediu para mudar o dia ou a hora. " +
@@ -874,6 +910,12 @@ const cancelarShape = {
 
 export const crmCancelAppointment: McpToolDefinition<typeof cancelarShape> = {
   name: "crm_cancel_appointment",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Desmarca um compromisso que ainda não aconteceu e LIBERA o horário para outra pessoa. " +
     "Use quando o cliente avisou que não vem, ou pediu para desmarcar. " +
@@ -904,6 +946,12 @@ const confirmarShape = {
 
 export const crmConfirmAppointment: McpToolDefinition<typeof confirmarShape> = {
   name: "crm_confirm_appointment",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Confirma que o cliente VAI COMPARECER a um compromisso que estava aguardando a resposta dele. " +
     "Use quando ele disser que vem — 'confirmado', 'pode marcar', 'estarei lá'. " +
@@ -941,6 +989,12 @@ const desfechoShape = {
 
 export const crmSetAppointmentOutcome: McpToolDefinition<typeof desfechoShape> = {
   name: "crm_set_appointment_outcome",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Propõe à equipe registrar comparecimento ou falta depois do início do compromisso. " +
     "A presença exige confirmação humana na Agenda; texto interpretado pelo assistente não é autorização. " +

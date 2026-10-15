@@ -31,11 +31,43 @@ export interface McpContext {
 
 export type McpToolCategory = "read" | "write" | "handoff";
 
+/**
+ * Os quatro hints do protocolo MCP (spec 2025-06-18), todos boolean de verdade.
+ *
+ * Obrigatórios de propósito: host sem hint assume o pior — não pré-aprova
+ * leitura, não avisa antes de encerrar — e o diretório de conectores da OpenAI
+ * recusa tool com hint ausente ou não-boolean. O gate mecânico que mantém os
+ * valores fiéis ao comportamento real vive em `tests/unit/mcp-anotacoes.test.ts`.
+ *
+ * A régua de cada hint AQUI (o porquê de cada membro está no teste):
+ *   - `readOnlyHint` — só consulta; espelha `category: "read"` e o risco
+ *     "seguro" do catálogo;
+ *   - `destructiveHint` — encerra ou remove algo que existia, sem volta pela
+ *     tela (cancelar compromisso, arquivar etapa, fechar chamado/demanda).
+ *     Atualizar campo, mover de etapa e ligar/desligar configuração são
+ *     reversíveis: false;
+ *   - `idempotentHint` — repetir com os mesmos argumentos converge: o estado
+ *     que o chamador pediu já está lá. Quem recusa duplicata conta como
+ *     idempotente; o rastro do próprio chamado (auditoria, evento) não
+ *     descaracteriza uma escrita que converge. Quem cria OUTRO registro de
+ *     domínio — negócio, recado, mensagem — não é;
+ *   - `openWorldHint` — a chamada alcança gente de fora da empresa (mensagem
+ *     real no WhatsApp); ler agenda, wiki ou banco interno é domínio fechado.
+ */
+export interface McpToolAnnotations {
+  readOnlyHint: boolean;
+  destructiveHint: boolean;
+  idempotentHint: boolean;
+  openWorldHint: boolean;
+}
+
 export interface McpToolDefinition<TInput extends z.ZodRawShape = z.ZodRawShape> {
   name: string;
   description: string;
   inputSchema: TInput;
   category: McpToolCategory;
+  /** Hints de wire do protocolo MCP. Obrigatórios — régua em `McpToolAnnotations`. */
+  annotations: McpToolAnnotations;
   /** Role mínima para invocar. Read default agent; Write default manager. */
   requiresRole: Role;
   /**

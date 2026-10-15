@@ -12,6 +12,12 @@ const listInputShape = {
 
 export const crmListPipelines: McpToolDefinition<typeof listInputShape> = {
   name: "crm_list_pipelines",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista pipelines do CRM com seus stages (vocabulary inclusa para renomear lead/deal/won/lost por tenant).",
   inputSchema: listInputShape,

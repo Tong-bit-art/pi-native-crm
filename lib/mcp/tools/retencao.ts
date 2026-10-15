@@ -110,6 +110,12 @@ const agendarShape = {
 
 export const crmScheduleFollowup: McpToolDefinition<typeof agendarShape> = {
   name: "crm_schedule_followup",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Agenda o retorno ao cliente num momento futuro. Informe lead_id OU contact_id. " +
     "QUANDO: informe `in_hours` (prazo a partir de agora — ex.: 72 para 'daqui a três dias') " +
@@ -257,6 +263,12 @@ const cancelarShape = {
 
 export const crmCancelFollowup: McpToolDefinition<typeof cancelarShape> = {
   name: "crm_cancel_followup",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Cancela um retorno agendado que ainda não disparou. Use quando o cliente já respondeu ou o " +
     "motivo do retorno deixou de existir — insistir com quem já respondeu é dano. " +
@@ -329,6 +341,12 @@ const listarShape = {
 
 export const crmListFollowups: McpToolDefinition<typeof listarShape> = {
   name: "crm_list_followups",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista os retornos de um cliente (informe lead_id OU contact_id), do mais próximo para o mais " +
     "antigo. Cada item traz situacao: 'agendado' (ainda vai acontecer), 'disparado' (já aconteceu) " +
@@ -388,6 +406,12 @@ const radarShape = {
 // equivalente, para o agente, de um campo que a tela recebe e não pinta.
 export const crmListAtRiskLeads: McpToolDefinition<typeof radarShape> = {
   name: "crm_list_at_risk_leads",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Radar de risco: as oportunidades ABERTAS que passaram da janela de esfriamento do próprio " +
     "estágio. Cada item traz risk='critico'|'em_risco'|'em_voo' (em_voo = já há retorno agendado, " +
@@ -424,6 +448,12 @@ const encerrarShape = {
 
 export const crmCloseDemand: McpToolDefinition<typeof encerrarShape> = {
   name: "crm_close_demand",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Encerra a demanda: move a oportunidade para o estágio terminal do funil como ganha " +
     "(outcome='won') ou perdida (outcome='lost', com reason obrigatório). É o outro lado do " +
@@ -472,6 +502,12 @@ const reativacaoShape = {
 
 export const crmProposeReactivation: McpToolDefinition<typeof reativacaoShape> = {
   name: "crm_propose_reactivation",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Cria uma proposta de retomada de contato para uma oportunidade que esfriou. A proposta aparece " +
     "no cartão do negócio para um humano aprovar; NADA é enviado ao cliente por conta dela, e ela " +
@@ -592,6 +628,12 @@ const inscreverShape = {
  */
 export const crmEnrollFollowupFlow: McpToolDefinition<typeof inscreverShape> = {
   name: "crm_enroll_followup_flow",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Inscreve o cliente num acompanhamento já configurado (um fluxo), que cuida do resto: " +
     "quando falar, o que dizer e quando parar. Use quando o atendimento terminou e ainda há " +

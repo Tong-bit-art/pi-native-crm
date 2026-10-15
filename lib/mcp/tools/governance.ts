@@ -54,6 +54,12 @@ const assignObject = z
 
 export const crmAssignConversation: McpToolDefinition<typeof assignInputShape> = {
   name: "crm_assign_conversation",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Atribui/transfere uma conversa a um atendente (reason='transfer', to_user_id preenchido) " +
     "ou libera de volta à fila (reason='release', to_user_id null). Grava assignment event " +
@@ -174,6 +180,12 @@ const tagsInputShape = {
 
 export const crmManageTags: McpToolDefinition<typeof tagsInputShape> = {
   name: "crm_manage_tags",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Adiciona/remove tags em uma conversation, contact ou lead. Tags são normalizadas " +
     "(lowercase, trim, ≤40 chars cada, ≤20 no total). Informe ao menos um de add/remove. " +
@@ -239,6 +251,12 @@ const queueInputShape = {};
 
 export const crmGetQueueStatus: McpToolDefinition<typeof queueInputShape> = {
   name: "crm_get_queue_status",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Snapshot da fila de atendimento da org: queue_size (conversas sem dono e abertas), " +
     "avg_wait_seconds (espera média desde a última mensagem do cliente) e " +

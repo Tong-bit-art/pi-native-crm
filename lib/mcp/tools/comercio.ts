@@ -26,6 +26,12 @@ const pedidosInputShape = {
 
 export const crmListContactOrders: McpToolDefinition<typeof pedidosInputShape> = {
   name: "crm_list_contact_orders",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista os pedidos de um contato, do mais recente para o mais antigo, com status, valor, " +
     "forma de pagamento, situação de entrega e código de rastreio. Use antes de prometer prazo " +
@@ -157,6 +163,12 @@ export function motivoDoVazioDaBusca(resultado: unknown): string | null {
 
 export const crmSearchProducts: McpToolDefinition<typeof produtosInputShape> = {
   name: "crm_search_products",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Busca no catálogo da loja e devolve o PREÇO EXATO, o que está disponível e o código de cada " +
     "produto. Use SEMPRE que a pessoa perguntar preço, e responda com o valor que voltar aqui — " +

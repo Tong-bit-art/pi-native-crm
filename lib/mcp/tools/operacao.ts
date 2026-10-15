@@ -73,6 +73,12 @@ const listStagesShape = {
 
 export const crmListStages: McpToolDefinition<typeof listStagesShape> = {
   name: "crm_list_stages",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista as etapas ativas de um pipeline, na ordem do quadro, com id, name, slug, position, " +
     "is_won/is_lost e a autoria da última mudança de configuração (last_change_actor_kind: user|ai|system). " +
@@ -97,6 +103,12 @@ const createStageShape = {
 
 export const crmCreateStage: McpToolDefinition<typeof createStageShape> = {
   name: "crm_create_stage",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Cria uma etapa no FIM do pipeline informado. O slug e a position são calculados no servidor. " +
     "Recusa nome que o usuário leria como duplicado (ignora acento e caixa). Não cria etapa de ganho/perda — " +
@@ -126,6 +138,12 @@ const updateStageShape = {
 
 export const crmUpdateStage: McpToolDefinition<typeof updateStageShape> = {
   name: "crm_update_stage",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Renomeia, reordena ou muda o papel de desfecho (is_won/is_lost) de uma etapa. " +
     "after_stage_id é o id da etapa VIZINHA DA ESQUERDA (null = primeira coluna), não um número de posição. " +
@@ -168,6 +186,12 @@ const archiveStageShape = {
 
 export const crmArchiveStage: McpToolDefinition<typeof archiveStageShape> = {
   name: "crm_archive_stage",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Arquiva uma etapa (nunca apaga — crm_leads_stage_id_fkey é ON DELETE RESTRICT e o histórico aponta para ela). " +
     "Exige move_leads_to_stage_id quando a etapa tem leads; o destino não pode ser a etapa de ganho nem a de perda " +
@@ -196,6 +220,12 @@ const listTagsShape = {
 
 export const crmListTags: McpToolDefinition<typeof listTagsShape> = {
   name: "crm_list_tags",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista os marcadores (tags) que a organização já usa, com a contagem de conversas de cada um e se ele está no " +
     "vocabulário canônico da org. Chame ANTES de crm_manage_tags: aplicar 'cliente-vip' quando já existe 'vip' " +
@@ -217,6 +247,12 @@ const listTemplatesShape = {};
 
 export const crmListMessageTemplates: McpToolDefinition<typeof listTemplatesShape> = {
   name: "crm_list_message_templates",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista as respostas prontas da organização: título, corpo com as marcações {{...}}, " +
     "atalho e se é compartilhada ou pessoal. Use quando a empresa já tiver decidido como diz algo, em vez de escrever do zero.",
@@ -237,6 +273,12 @@ const renderTemplateShape = {
 
 export const crmRenderMessageTemplate: McpToolDefinition<typeof renderTemplateShape> = {
   name: "crm_render_message_template",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Preenche uma resposta pronta com os dados do contato/lead informados e devolve o TEXTO — não envia nada. " +
     "Devolve também `lacunas`: as marcações que ficaram sem valor. Se vier lacuna, NÃO mande o texto como está: " +
@@ -264,6 +306,12 @@ const listSourcesShape = {
 
 export const crmListWebhookSources: McpToolDefinition<typeof listSourcesShape> = {
   name: "crm_list_webhook_sources",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista as entradas automáticas de contatos da org: nome, se está ativa, para qual pipeline/stage " +
     "manda, quando recebeu pela última vez e a autoria da última mudança. O segredo nunca sai — só `has_secret`.",
@@ -283,6 +331,12 @@ const sourceEventsShape = {
 
 export const crmListWebhookSourceEvents: McpToolDefinition<typeof sourceEventsShape> = {
   name: "crm_list_webhook_source_events",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Últimos recebimentos de uma entrada automática: quando chegou, se a assinatura era válida, o status e os NOMES " +
     "dos campos que vieram. Os VALORES não são devolvidos (são dados pessoais de quem preencheu o formulário) — " +
@@ -311,6 +365,12 @@ const createSourceShape = {
 
 export const crmCreateWebhookSource: McpToolDefinition<typeof createSourceShape> = {
   name: "crm_create_webhook_source",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
   description:
     "Cria uma entrada automática de contatos e devolve o path_token da URL de captação. " +
     "O pipeline e o stage têm que ser da MESMA organização e o stage têm que pertencer ao pipeline; " +
@@ -353,6 +413,12 @@ const setSourceActiveShape = {
 
 export const crmSetWebhookSourceActive: McpToolDefinition<typeof setSourceActiveShape> = {
   name: "crm_set_webhook_source_active",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Liga ou desliga uma entrada automática de contatos. Desligar faz o formulário que já está publicado no site do " +
     "cliente PARAR de virar contato imediatamente — ninguém é avisado do outro lado. Confirme com um humano antes de desligar.",
@@ -375,6 +441,12 @@ const listRulesShape = {
 
 export const crmListAutomationRules: McpToolDefinition<typeof listRulesShape> = {
   name: "crm_list_automation_rules",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista as regras automáticas da org: nome, se está ligada, qual evento a dispara, os TIPOS de ação que ela executa, " +
     "quantas condições tem, quando rodou pela última vez e quantas vezes. A configuração das ações (URL de destino, " +
@@ -396,6 +468,12 @@ const listRunsShape = {
 
 export const crmListAutomationRuns: McpToolDefinition<typeof listRunsShape> = {
   name: "crm_list_automation_runs",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Histórico do que as regras automáticas dispararam (mais recentes primeiro): qual regra, status " +
     "(success|partial|failed), quando, e o detalhe SÓ das ações que falharam. Use only_failures=true para responder " +
@@ -422,6 +500,12 @@ const setRuleActiveShape = {
 
 export const crmSetAutomationRuleActive: McpToolDefinition<typeof setRuleActiveShape> = {
   name: "crm_set_automation_rule_active",
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Liga ou desliga uma regra automática. LIGAR faz a regra rodar sozinha em TODO evento que casar, indefinidamente, " +
     "sem ninguém assistindo — e as ações podem enviar mensagem ao cliente ou mandar dados para fora da empresa. " +
@@ -444,6 +528,12 @@ const listTeamShape = {};
 
 export const crmListTeamMembers: McpToolDefinition<typeof listTeamShape> = {
   name: "crm_list_team_members",
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   description:
     "Lista quem trabalha na organização: user_id, papel (viewer|agent|manager|admin) e se o convite ainda está pendente. " +
     "É o user_id que crm_assign_conversation consome. Não devolve e-mail nem nome — o agente precisa saber a quem " +
